@@ -14,7 +14,11 @@
 ;defs
 ;INCLUDE zx81defs.asm
     ;include zx81defs.asm
-    include zx81rom.asm
+    device	NOSLOT64K
+	SLDOPT COMMENT WPMEM, LOGPOINT, ASSERTION
+
+	
+	include zx81rom.asm
     include charcodes.asm
     include zx81sys.asm
     include line1.asm
@@ -23,12 +27,13 @@
 ;------------------------------------------------------------
 ; code starts here and gets added to the end of the REM 
 ;------------------------------------------------------------
+code_start	
 	ld bc,1
 	ld de,hello_txt
 	call dispstring
 
 ;back to BASIC	
-	ret
+	jp code_start
 
 ;Subroutines	
 ;display a string

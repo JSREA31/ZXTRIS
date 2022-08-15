@@ -3,11 +3,18 @@
     // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
-        {
-            "label": "SJASMPLUS",
+ 		{
+            "label": "sjasmplus",
             "type": "shell",
-            "command": "sjasmplus ${file} --lst=test.lst --sym=test.sym --raw=test.p",
-            "problemMatcher": [],
+            "command": "/usr/local/bin/sjasmplus",    						
+            "args": [
+				"${file}", 
+                "--sld=${fileBasenameNoExtension}.sld",
+                "--fullpath", 
+                "--raw=${fileDirname}/${fileBasenameNoExtension}.p",
+                //"--lst=${fileDirname}/${fileBasenameNoExtension}.lst",
+            	                                 
+			],
             "group": {
                 "kind": "build",
                 "isDefault": true
