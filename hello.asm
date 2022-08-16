@@ -1,23 +1,14 @@
 ;
-; To assembly this, either use the zxasm.bat file:
 ;
-; zxasm hello
-;
-; or... assemble with the following options:
-;
-; tasm -80 -b -s hello.asm hello.p
+; sjasmplus hello
 ;
 ;==============================================
 ;    ZX81 assembler 'Hello World' 
 ;==============================================
 ;
-;defs
-;INCLUDE zx81defs.asm
-    ;include zx81defs.asm
     device	NOSLOT64K
 	SLDOPT COMMENT WPMEM, LOGPOINT, ASSERTION
 
-	
 	include zx81rom.asm
     include charcodes.asm
     include zx81sys.asm
@@ -40,11 +31,17 @@ code_start
 dispstring
 ;write directly to the screen
 	ld hl,(D_FILE)
-	add hl,bc	
+	add hl,bc
 loop2
 	ld a,(de)
 	cp $ff
 	jp z,loop2End
+	scf
+	sbc $1A
+	cp $05
+	jp nz, notaspace
+	ld a,$00
+notaspace	
 	ld (hl),a
 	inc hl
 	inc de

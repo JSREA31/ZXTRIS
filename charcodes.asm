@@ -55,3 +55,5 @@ _W				EQU $3C
 _X				EQU $3D
 _Y				EQU $3E
 _Z				EQU $3F
+
+_iH             EQU $AD
