@@ -15,3 +15,8 @@ SLOW            EQU $0F2B
 SLOWORFAST		EQU $0207
 ;sys vars
 ERR_NR			EQU $4000
+
+well_width  = 10
+well_height = 23
+well_wall_char = $17
+well_space = $00

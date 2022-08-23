@@ -1,12 +1,10 @@
 ;*************************
 ;**** well dimensions ****
 ;*************************
-well_width  = 10+2
-well_height = 23+1
-well_wall_char = $17
+
 
 playfield 
-		BLOCK (well_height*well_width),$00
+		BLOCK ((well_height+1)*(well_width+2)),$ff
 
 hello_txt
 		DEFM	"HELLO WORLD"

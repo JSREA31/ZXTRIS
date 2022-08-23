@@ -25,7 +25,7 @@ code_start
 
 ;back to BASIC	
 	jp new_Well
-	jp code_start
+	ret
 
 ;Subroutines	
 ;display a string
@@ -55,21 +55,40 @@ loop2End
 ;****           new_Well:Create Empty TETRIS well            ****
 ;*****************************************************************
 new_Well
-;clear the entire playfield
-
+;clear the entire playfied	
 	ld hl,playfield
-	ld b, well_height+1
-next_row
-	ld c, well_width+1
-next_column
-		ld (hl),c
+	ld b, well_height
+next_row_well
+	ld c, well_width+2
+next_column_well
+		ld (hl),well_space
 		inc hl
 		dec c
-		jp nz,next_column
+		jp nz,next_column_well
 	dec b
-	jp nz, next_row
+	jp nz, next_row_well
 
+;draw walls
 
+	ld hl,playfield
+	ld b,well_height+1
+	ld de,well_width+1
+next_row_wall
+	ld (hl), well_wall_char	
+	adc hl,de
+	ld (hl),well_wall_char
+	inc hl
+	dec b
+	jp nz,next_row_wall
+
+;do bottom row	
+	sbc hl,de
+	ld b,well_width
+floor
+	ld (hl),well_wall_char
+	inc hl
+	dec b
+	jp nz, floor	
 
 	ret
 
