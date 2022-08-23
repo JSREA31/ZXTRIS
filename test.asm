@@ -28,9 +28,16 @@
 ; code starts here and gets added to the end of the REM 
 ;------------------------------------------------------------
 code_start	
-	ld a,$10
-	neg
+	ld a,(inputB)
 	inc a
+	ld b,a
+	adc a,b
+	adc a,b	
+	ld b,a
+	ld a,(inputA)
+	sbc a,b
+	dec a
+	ld (outputC),a
 	ret
 ;include our variables
     include vars.asm
