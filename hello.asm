@@ -19,11 +19,12 @@
 ; code starts here and gets added to the end of the REM 
 ;------------------------------------------------------------
 code_start	
-	ld bc,1
+	ld bc,10
 	ld de,hello_txt
 	call dispstring
 
 ;back to BASIC	
+	jp new_Well
 	jp code_start
 
 ;Subroutines	
@@ -48,6 +49,30 @@ notaspace
 	jr loop2
 loop2End	
 	ret	
+
+
+;****************************************************************
+;****           new_Well:Create Empty TETRIS well            ****
+;*****************************************************************
+new_Well
+;clear the entire playfield
+
+	ld hl,playfield
+	ld b, well_height+1
+next_row
+	ld c, well_width+1
+next_column
+		ld (hl),c
+		inc hl
+		dec c
+		jp nz,next_column
+	dec b
+	jp nz, next_row
+
+
+
+	ret
+
 ;include our variables
     include vars.asm
 
