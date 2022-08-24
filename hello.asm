@@ -29,11 +29,13 @@ main_start
 	ld de,hello_txt
 	call dispstring
 
-;back to BASIC	
+
 	jp new_Well
+	
+;back to BASIC		
 	ret
 
-;Subroutines	
+
 ;display a string
 dispstring
 ;write directly to the screen
@@ -55,6 +57,17 @@ notaspace
 	jr loop2
 loop2End	
 	ret	
+
+
+;****************************************************************
+;****           new_Well:Create Empty TETRIS well            ****
+;*****************************************************************
+render_playfield
+
+	
+
+	ret
+
 
 
 ;****************************************************************
