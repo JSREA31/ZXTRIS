@@ -25,15 +25,11 @@ code_start
 	include vars.asm
 
 main_start	
-	ld bc,10
-	ld de,hello_txt
-	call dispstring
-
-
-	jp new_Well
-	
+	call new_Well
+	call render_playfield
+Forever	
 ;back to BASIC		
-	ret
+	jp Forever
 
 
 ;display a string
@@ -64,7 +60,30 @@ loop2End
 ;*****************************************************************
 render_playfield
 
-	
+;get start position in screen memory
+	ld hl,Display
+	ld de,(start_row * screen_width)+start_column+1
+	adc hl,de
+
+;get start of playfield
+	ld de,playfield	
+	ld b, well_height+1
+next_row_render
+	ld c, well_width+2
+next_column_render
+		ld a,(de)
+		ld (hl),a
+		inc hl
+		inc de
+		dec c
+		jp nz,next_column_render
+	push de
+	ld de, screen_width-(well_width+2)
+	adc hl,de
+	pop de
+	dec b
+	jp nz, next_row_render
+
 
 	ret
 
