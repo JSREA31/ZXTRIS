@@ -12,13 +12,19 @@
 	include zx81rom.asm
     include charcodes.asm
     include zx81sys.asm
-    include line1.asm
+    include game_constants.asm
+	include line1.asm
 ;
 
 ;------------------------------------------------------------
 ; code starts here and gets added to the end of the REM 
 ;------------------------------------------------------------
-code_start	
+code_start
+	jp main_start
+
+	include vars.asm
+
+main_start	
 	ld bc,10
 	ld de,hello_txt
 	call dispstring
@@ -92,8 +98,6 @@ floor
 
 	ret
 
-;include our variables
-    include vars.asm
 
 ; ===========================================================
 ; code ends
