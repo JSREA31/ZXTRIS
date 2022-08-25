@@ -9,5 +9,5 @@ start_row = 0
 start_column = 7
 screen_width = 33
 
-tetro_size = 16
-tetro_block = 16*4
+tetro_size = 4
+tetro_block = 16

@@ -60,13 +60,39 @@ loop2End
 ;*****************************************************************
 render_tetro
 
-;get start of playfield plot area
 
+;Find out tetro start, using tetro number and rotation state
+
+;step 1 which tetro
+	ld hl,tetrominoZero
+	ld a,(current_tetro)
+	cp a,0
+	jp z,2F
+	ld de,tetro_block*4
+1	
+		adc hl,de
+		dec a
+		jp nz,1B
+2
+
+;step 2 which rotation state
+	ld a,(tetro_rotation)
+	cp a,0
+	jp z,2F
+	ld de,tetro_block
+1	
+		adc hl,de
+		dec a
+		jp nz,1B
+2
+	push hl
+
+;get start of playfield plot area
 	ld hl,playfield
-	ld de,well_width+2
 	ld a,(tetro_y)
 	cp a,0
 	jp z,2F
+	ld de,well_width+2	
 1	
 		adc hl,de
 		dec a
@@ -75,17 +101,35 @@ render_tetro
 	ld a,(tetro_x)
 	ld e,a
 	ld d,0
-	adc hl,de
+	add hl,de
 	inc hl
 
-	;push playfield start position onto stack
-	push hl
-
-;now find out tetro start, using tetro number and rotation state
-
-
-
-
+;now draw the tetro into playfield
+	pop de
+	ld b,tetro_size
+1
+	ld c,tetro_size	
+2		
+		ld a,(de)
+		cp a, $40
+		jp nz,3F
+			ld a,$00
+3		
+		cp a,$23
+		jp nz,4F
+			ld a,well_wall_char
+4		
+		ld (hl),a
+		inc hl
+		inc de
+		dec c
+		jp nz, 2B
+	push de
+	ld de, well_width+2-tetro_size
+	add hl,de
+	pop de
+	dec b
+	jp nz,1B
 	ret
 
 
@@ -97,7 +141,7 @@ render_playfield
 ;get start position in screen memory
 	ld hl,Display
 	ld de,(start_row * screen_width)+start_column+1
-	adc hl,de
+	add hl,de
 
 ;get start of playfield
 	ld de,playfield	
@@ -113,7 +157,7 @@ next_column_render
 		jp nz,next_column_render
 	push de
 	ld de, screen_width-(well_width+2)
-	adc hl,de
+	add hl,de
 	pop de
 	dec b
 	jp nz, next_row_render
@@ -147,13 +191,14 @@ next_column_well
 	ld de,well_width+1
 next_row_wall
 	ld (hl), well_wall_char	
-	adc hl,de
+	add hl,de
 	ld (hl),well_wall_char
 	inc hl
 	dec b
 	jp nz,next_row_wall
 
 ;do bottom row	
+	or a
 	sbc hl,de
 	ld b,well_width
 floor

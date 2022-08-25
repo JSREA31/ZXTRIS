@@ -7,13 +7,13 @@ hello_txt
 		DEFB 	$FF
 	
 current_tetro
-		DEFB 0
+		DEFB 2
 tetro_rotation
-		DEFB 1		
+		DEFB 2		
 tetro_x
-		DEFB 1
+		DEFB 5
 tetro_y
-		DEFB 1
+		DEFB 15
 
 tetrominoZero
 
