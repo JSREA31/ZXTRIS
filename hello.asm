@@ -26,6 +26,7 @@ code_start
 
 main_start	
 	call new_Well
+	call render_tetro
 	call render_playfield
 Forever	
 ;back to BASIC		
@@ -54,9 +55,42 @@ notaspace
 loop2End	
 	ret	
 
+;****************************************************************
+;****    render_tetro:render tetro to Playfield              ****
+;*****************************************************************
+render_tetro
+
+;get start of playfield plot area
+
+	ld hl,playfield
+	ld de,well_width+2
+	ld a,(tetro_y)
+	cp a,0
+	jp z,2F
+1	
+		adc hl,de
+		dec a
+		jp nz,1B
+2
+	ld a,(tetro_x)
+	ld e,a
+	ld d,0
+	adc hl,de
+	inc hl
+
+	;push playfield start position onto stack
+	push hl
+
+;now find out tetro start, using tetro number and rotation state
+
+
+
+
+	ret
+
 
 ;****************************************************************
-;****           new_Well:Create Empty TETRIS well            ****
+;****    render_playfield:render playfield to Display        ****
 ;*****************************************************************
 render_playfield
 

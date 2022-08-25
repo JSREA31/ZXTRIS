@@ -12,11 +12,43 @@ L0F55:       equ  0F55h
 L14A3:       equ  14A3h
 L4000:       equ  4000h
 L4007:       equ  4007h
+L400C:       equ  400Ch
 L4029:       equ  4029h
 L402B:       equ  402Bh
 L4030:       equ  4030h
-L41EB:       equ  41EBh
-L41ED:       equ  41EDh
+L439B:       equ  439Bh
+L43BA:       equ  43BAh
+L4406:       equ  4406h
+
+
+             org 0066h
+
+
+0066 L0066:
+0066 08           EX   AF,AF' 
+0067 3C           INC  A      
+0068 FA 6D 00     JP   M,L006D 
+006B 28 02        JR   Z,L006F 
+006D L006D:
+006D 08           EX   AF,AF' 
+006E C9           RET         
+006F L006F:
+006F 08           EX   AF,AF' 
+0070 F5           PUSH AF     
+0071 C5           PUSH BC     
+0072 D5           PUSH DE     
+0073 E5           PUSH HL     
+0074 2A 0C 40     LD   HL,(L400C) 
+0077 CB FC        SET  7,H    
+0079 76           HALT        
+007A D3 FD        OUT  (00FDh),A 
+007C DD E9        JP   (IX)   
+
+
+007E 3F           defb 3Fh    
+007F 3D           defb 3Dh    
+0080 28           defb 28h    
+0081 3B           defb 3Bh    
 
 
              org 0673h
@@ -277,36 +309,55 @@ L41ED:       equ  41EDh
 0DF5 2A           defb 2Ah    
 
 
-             org 41EFh
+             org 4378h
 
 
-41EF L41EF:
-41EF 23           INC  HL     
-41F0 13           INC  DE     
-41F1 0D           DEC  C      
-41F2 C2 ED 41     JP   NZ,L41ED 
-41F5 D5           PUSH DE     
-41F6 11 15 00     LD   DE,0015h 
-41F9 ED 5A        ADC  HL,DE  
-41FB D1           POP  DE     
-41FC 05           DEC  B      
-41FD C2 EB 41     JP   NZ,L41EB 
-4200 C9           RET         
+4378 L4378:
+4378 CD 9B 43     CALL L439B  
+437B CD BA 43     CALL L43BA  
+437E L437E:
+437E C3 7E 43     JP   L437E  
 
 
-4201 21           defb 21h    
-4202 85           defb 85h    
-4203 40           defb 40h    
-4204 06           defb 06h    
-4205 17           defb 17h    
-4206 0E           defb 0Eh    
-4207 0C           defb 0Ch    
-4208 71           defb 71h    
-4209 23           defb 23h    
-420A 0D           defb 0Dh    
-420B C2           defb C2h    
-420C 08           defb 08h    
-420D 42           defb 42h    
-420E 05           defb 05h    
-420F C2           defb C2h    
-4210 06           defb 06h    
+4381 2A           defb 2Ah    
+4382 0C           defb 0Ch    
+4383 40           defb 40h    
+4384 09           defb 09h    
+4385 1A           defb 1Ah    
+4386 FE           defb FEh    
+4387 FF           defb FFh    
+4388 CA           defb CAh    
+4389 9A           defb 9Ah    
+438A 43           defb 43h    
+438B 37           defb 37h    
+
+
+             org 4408h
+
+
+4408 L4408:
+4408 23           INC  HL     
+4409 05           DEC  B      
+440A C2 06 44     JP   NZ,L4406 
+440D C9           RET         
+
+
+440E 76           defb 76h    
+440F 00           defb 00h    
+4410 0A           defb 0Ah    
+4411 0E           defb 0Eh    
+4412 00           defb 00h    
+4413 F9           defb F9h    
+4414 D4           defb D4h    
+4415 1D           defb 1Dh    
+4416 22           defb 22h    
+4417 21           defb 21h    
+4418 1D           defb 1Dh    
+4419 20           defb 20h    
+441A 7E           defb 7Eh    
+441B 8F           defb 8Fh    
+441C 01           defb 01h    
+441D 04           defb 04h    
+441E 00           defb 00h    
+441F 00           defb 00h    
+4420 76           defb 76h    
