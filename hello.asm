@@ -39,25 +39,18 @@ wait_spacebar
 game_loop	
 	call bump_tetro_counter ; sudo randon number for next tetro
 ;update I'm alive counter
-	ld de,tetro_counter
-	ld a,(de)
-	ld hl,Display+1
-	ld (hl),a
+	ld a,(tetro_counter)
+	ld (Display+1),a
 ;end of I'm alive counter
 
 	call get_keyboard
 	;code to display keypress
-		ld hl,Display+34
-		ld (hl),a
+		ld (Display+34),a
 		cp a, $39
 		jp nz, 1F
-			ld de,tetro_counter
-			ld a,(de)
-			ld hl,current_tetro
-			ld(hl),a
-
+			ld a,(tetro_counter)
+			ld(current_tetro),a
 1	
-
 	call render_tetro
 	call render_playfield
 	
@@ -253,15 +246,13 @@ init_game
 	;get randon 1st tetro
 	call get_tetro
 	;use this to work out next tetro (not quite randomn!)
-	ld de,current_tetro
-	ld a,(de)
+	ld a,(current_tetro)
 	inc a
 	cp a, $07
 	jp nz,1F
 		ld a,$0
 1	
-	ld hl,next_tetro
-	ld(hl),a
+	ld(next_tetro),a
 	
 	;clear the playfield
 	call new_Well
@@ -302,23 +293,20 @@ get_keyboard
 ;*****************************************************************
 get_tetro
 	ld de,tetro_counter
-			ld a,(de)
-			ld hl,current_tetro
-			ld(hl),a
+			ld a,(tetro_counter)
 	ret
 
 ;****************************************************************
 ;****     bump_tetro_counter: counts between 0 and 6          ****
 ;*****************************************************************
 bump_tetro_counter
-	ld hl,tetro_counter
-	ld a,(hl)
+	ld a,(tetro_counter)
 	inc a
 	cp a,$07
 	jp nz,carry_on
 	ld a, $00
 carry_on
-	ld (hl),a
+	ld (tetro_counter),a
 	ret
 
 ; ===========================================================
