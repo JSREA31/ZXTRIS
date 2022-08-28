@@ -20,17 +20,48 @@
 ; code starts here and gets added to the end of the REM 
 ;------------------------------------------------------------
 code_start
-	jp main_start
-
+	jp main_loop
 	include vars.asm
 
-main_start	
-	call new_Well
+main_loop	
+	
+	;title screen - goes here
+wait_spacebar
+	call bump_tetro_counter ; sudo randon number for next tetro
+	call get_keyboard
+		cp a, $00
+		jp nz,wait_spacebar
+
+	call init_game
+
+
+
+game_loop	
+	call bump_tetro_counter ; sudo randon number for next tetro
+;update I'm alive counter
+	ld de,tetro_counter
+	ld a,(de)
+	ld hl,Display+1
+	ld (hl),a
+;end of I'm alive counter
+
+	call get_keyboard
+	;code to display keypress
+		ld hl,Display+34
+		ld (hl),a
+		cp a, $39
+		jp nz, 1F
+			ld de,tetro_counter
+			ld a,(de)
+			ld hl,current_tetro
+			ld(hl),a
+
+1	
+
 	call render_tetro
 	call render_playfield
-Forever	
-;back to BASIC		
-	jp Forever
+	
+	jp game_loop
 
 
 ;display a string
@@ -209,6 +240,86 @@ floor
 
 	ret
 
+;****************************************************************
+;****           start_screen:draw startscreen                 ****
+;*****************************************************************
+start_screen
+	ret
+
+;****************************************************************
+;****           init_game:setup game variables                ****
+;*****************************************************************
+init_game
+	;get randon 1st tetro
+	call get_tetro
+	;use this to work out next tetro (not quite randomn!)
+	ld de,current_tetro
+	ld a,(de)
+	inc a
+	cp a, $07
+	jp nz,1F
+		ld a,$0
+1	
+	ld hl,next_tetro
+	ld(hl),a
+	
+	;clear the playfield
+	call new_Well
+
+	;set x and y
+
+	;clear the score
+
+	;clear the level
+
+
+	ret
+;****************************************************************
+;****           clear_screen: clear the screen                 ****
+;*****************************************************************
+clear_screen
+	ret
+
+;****************************************************************
+;****          get_keyboard: read and decode keyboard        ****
+;*****************************************************************
+get_keyboard
+	call KSCAN
+	ld b,h
+	ld c,l
+	ld d,c
+	inc d
+	jr z, 1F
+	call DECODE
+	ld a,(hl)
+	ret
+1
+	ld a,$ff
+	ret
+
+;****************************************************************
+;****        get_tetro: random tetro number                   ****
+;*****************************************************************
+get_tetro
+	ld de,tetro_counter
+			ld a,(de)
+			ld hl,current_tetro
+			ld(hl),a
+	ret
+
+;****************************************************************
+;****     bump_tetro_counter: counts between 0 and 6          ****
+;*****************************************************************
+bump_tetro_counter
+	ld hl,tetro_counter
+	ld a,(hl)
+	inc a
+	cp a,$07
+	jp nz,carry_on
+	ld a, $00
+carry_on
+	ld (hl),a
+	ret
 
 ; ===========================================================
 ; code ends

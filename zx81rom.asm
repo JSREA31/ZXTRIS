@@ -7,8 +7,9 @@ DISPLAY_5		EQU $02B5
 PLOT			EQU $0BB2 	; note ROM plot is 0baf - however first thing it does try to pull BC from the calculator stack
 							; so we'll skip past that and set BC ourselves
 CLS				EQU $0A2A
-KSCAN           EQU $02BB 
-FINDCHR         EQU $07BD
+KSCAN           EQU $02BB
+DECODE			EQU $07BD	 
+RND				EQU $0BED
 COPY            EQU $0869
 FAST            EQU $0F23
 SLOW            EQU $0F2B

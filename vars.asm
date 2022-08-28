@@ -5,11 +5,15 @@ playfield
 hello_txt
 		DEFM	"HELLO WORLD"
 		DEFB 	$FF
-	
+
+tetro_counter
+		DEFB $00
 current_tetro
-		DEFB 2
+		DEFB 0
 tetro_rotation
-		DEFB 2		
+		DEFB 0
+next_tetro
+		DEFB 0		
 tetro_x
 		DEFB 5
 tetro_y
