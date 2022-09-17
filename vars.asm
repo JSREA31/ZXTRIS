@@ -1,6 +1,6 @@
 
 playfield 
-		BLOCK ((well_height+1)*(well_width+2)),$ff
+		BLOCK ((WELL_HEIGHT+1)*(WELL_WIDTH+2)),$ff
 
 hello_txt
 		DEFM	"HELLO WORLD"
@@ -15,9 +15,13 @@ tetro_rotation
 next_tetro
 		DEFB 0		
 tetro_x
-		DEFB 5
+		DEFB 3
 tetro_y
-		DEFB 15
+		DEFB 0
+level
+		DEFB 00
+delay_counter
+		DEFB 00
 
 tetrominoZero
 
