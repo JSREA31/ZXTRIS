@@ -1,9 +1,8 @@
 ;
 ;
-; sjasmplus hello
 ;
 ;==============================================
-;    ZX81 assembler 'Hello World' 
+;    ZXTRIS 
 ;==============================================
 ;
     device	NOSLOT64K
@@ -33,26 +32,22 @@ wait_spacebar
 	call init_game
 
 
-
 game_loop	
 ;update I'm alive counter
-	ld a,(tetro_counter)
+	LD A,($4034)
+	AND $0f
 	ld (Display+1),a
 ;end of I'm alive counter
 
-;delay loop	
+;delay loop		
 	ld a, (delay_counter)
 	dec a
 	ld (delay_counter),a
 	jp nz, 1F
 		ld a,LEVEL1_DELAY
 		ld (delay_counter),a
-		call drop_tetro
+		call move_y
 1	
-	call bump_tetro_counter ; sudo randon number for next tetro
-
-
-
 	
 	call get_keyboard
 	
@@ -60,7 +55,7 @@ game_loop
 	
 	cp a,$FF
 	jp z, 1F	
-	;ld (Display+34),a
+
 	cp a,$72
 	jp nz, 2F
 		ld a,$13
@@ -75,7 +70,7 @@ game_loop
 3
 	cp a, $39
 	jp nz, 1F
-		ld a,(tetro_counter)
+		call get_tetro
 		ld(current_tetro),a
 1	
 
@@ -271,7 +266,7 @@ start_screen
 init_game
 	
 	;get randon 1st tetro
-	call get_tetro
+	call spawn
 	;use this to work out next tetro (not quite randomn!)
 	ld a,(current_tetro)
 	inc a
@@ -319,20 +314,28 @@ get_keyboard
 	ret
 
 ;****************************************************************
+;****        spawn: random tetro number                   ****
+;*****************************************************************
+spawn
+	call get_tetro
+	
+	ret
+
+
+
+;****************************************************************
 ;****        get_tetro: random tetro number                   ****
 ;*****************************************************************
 get_tetro
-	ld a,(tetro_counter)
+	ld a,($4034)
+	and $07
 	ld (current_tetro),a
 	ret
 
 ;****************************************************************
-;****        drop_tetro: move tetro_down                     ****
+;****        move_y: move tetro_down                     ****
 ;*****************************************************************
-drop_tetro
-	ld a,(Display+3)
-	inc a
-	ld (Display+3),a
+move_y
 	
 	call undraw_tetro
 	
