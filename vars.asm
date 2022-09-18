@@ -1,6 +1,6 @@
 
 playfield 
-		BLOCK ((WELL_HEIGHT+1)*(WELL_WIDTH+2)),$ff
+		BLOCK ((WELL_HEIGHT+1)*(WELL_WIDTH+3)),$ff
 
 hello_txt
 		DEFM	"HELLO WORLD"
@@ -12,6 +12,8 @@ current_tetro
 		DEFB 0
 tetro_rotation
 		DEFB 0
+temp_rotation
+        DEFB 0        
 next_tetro
 		DEFB 0		
 tetro_x
@@ -22,6 +24,20 @@ level
 		DEFB 00
 delay_counter
 		DEFB 00
+last_keyp
+        DEFB 10
+current_tetro_char
+        DEFB 00
+game_overflag
+        DEFB 00
+speed
+        DEFB 00
+keyboard_block
+        DEFB 00
+speed_store
+        DEFB 00
+can_move
+        DEFB 00
 
 tetrominoZero
 

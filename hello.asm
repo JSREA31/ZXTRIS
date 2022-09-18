@@ -25,7 +25,6 @@ code_start
 main_loop	
 	;title screen - goes here
 wait_spacebar
-	call bump_tetro_counter ; sudo randon number for next tetro
 	call get_keyboard
 		cp a, $00
 		jp nz,wait_spacebar
@@ -44,36 +43,15 @@ game_loop
 	dec a
 	ld (delay_counter),a
 	jp nz, 1F
-		ld a,LEVEL1_DELAY
+		ld a,(speed)
 		ld (delay_counter),a
-		call move_y
+		;call move_y
 1	
 	
 	call get_keyboard
-	
-	;code to display keypress
-	
-	cp a,$FF
-	jp z, 1F	
+	call doactions
 
-	cp a,$72
-	jp nz, 2F
-		ld a,$13
-		ld (Display+34),a
-		jp 1F
-2	
-	cp a,$73
-	jp nz, 3F
-		ld a,$12
-		ld (Display+34),a
-		jp 1F
-3
-	cp a, $39
-	jp nz, 1F
-		call get_tetro
-		ld(current_tetro),a
-1	
-
+	
 	call render_tetro
 	call render_playfield
 	
@@ -137,9 +115,9 @@ render_tetro
 ;get start of playfield plot area
 	ld hl,playfield
 	ld a,(tetro_y)
-	cp a,0
+	cp a,$0
 	jp z,2F
-	ld de,WELL_WIDTH+2	
+	ld de,WELL_WIDTH+3	
 1	
 		adc hl,de
 		dec a
@@ -163,14 +141,14 @@ render_tetro
 		jp z,3F	
 		cp a,$23
 		jp nz,3F
-			ld a,WELL_WAL_CHAR
+			ld a,(current_tetro_char)
 			ld (hl),a
 3		
 		inc hl
 		inc de
 		djnz 2B
 	push de
-	ld de, WELL_WIDTH+2-TETRO_SIZE
+	ld de, WELL_WIDTH+3-TETRO_SIZE
 	add hl,de
 	pop de
 	pop bc
@@ -192,7 +170,7 @@ render_playfield
 	ld de,playfield	
 	ld b, WELL_HEIGHT+1
 next_row_render
-	ld c, WELL_WIDTH+2
+	ld c, WELL_WIDTH+3
 next_column_render
 		ld a,(de)
 		ld (hl),a
@@ -201,7 +179,7 @@ next_column_render
 		dec c
 		jp nz,next_column_render
 		push de
-	ld de, SCREEN_WIDTH-(WELL_WIDTH+2)
+	ld de, SCREEN_WIDTH-(WELL_WIDTH+3)
 	add hl,de
 	pop de
 	dec b
@@ -218,9 +196,9 @@ next_column_render
 new_Well
 ;clear the entire playfied	
 	ld hl,playfield
-	ld b, WELL_HEIGHT
+	ld b, WELL_HEIGHT+1
 next_row_well
-	ld c, WELL_WIDTH+2
+	ld c, WELL_WIDTH+3
 next_column_well
 		ld (hl),WELL_SPACE
 		inc hl
@@ -228,14 +206,16 @@ next_column_well
 		jp nz,next_column_well
 	dec b
 	jp nz, next_row_well
-
+    
 ;draw walls
 
 	ld hl,playfield
-	ld b,WELL_HEIGHT+1
+	ld b,WELL_HEIGHT
 	ld de,WELL_WIDTH+1
 next_row_wall
-	ld (hl), WELL_WAL_CHAR	
+	ld (hl), $00
+    inc hl
+    ld (hl),WELL_WAL_CHAR	
 	add hl,de
 	ld (hl),WELL_WAL_CHAR
 	inc hl
@@ -244,8 +224,10 @@ next_row_wall
 
 ;do bottom row	
 	or a
-	sbc hl,de
-	ld b,WELL_WIDTH
+	;sbc hl,de
+	ld b,WELL_WIDTH+2
+    ld (hl),$00
+    inc hl
 floor
 	ld (hl),WELL_WAL_CHAR
 	inc hl
@@ -265,29 +247,33 @@ start_screen
 ;*****************************************************************
 init_game
 	
-	;get randon 1st tetro
-	call spawn
-	;use this to work out next tetro (not quite randomn!)
-	ld a,(current_tetro)
-	inc a
-	cp a, $07
-	jp nz,1F
-		ld a,$0
-1	
-	ld(next_tetro),a
-	
-	;clear the playfield
+    ;use this to work out next tetro (not quite randomn!) but only if this is the first tetro
+	call get_tetro
+    ld (next_tetro),a
+
+    ;reset game over flag
+    ld a,$00
+    ld (game_overflag),a
+
+    ;clear the playfield
 	call new_Well
 
-	;set x and y
-
-	;clear the score
+    ;clear the score
 
 	;clear the level
 	ld a,LEVEL1_DELAY
+    ld (speed),a
+    ld (speed_store),a
 	ld (delay_counter), a
-	ld a, $01
+	
+    ld a, $01
 	ld (level),a
+
+    ld a,$00
+    ld (keyboard_block),a
+
+	;draw tetro and set x,y
+	call spawn
 
 	ret
 ;****************************************************************
@@ -305,20 +291,248 @@ get_keyboard
 	ld c,l
 	ld d,c
 	inc d
+    ld a,$ff
 	jr z, 1F
 		call DECODE
-		ld a,(hl)
-		ret
+		ld a,(hl)   
+        ld b,a
+        ld a,(last_keyp)
+        cp b
+        ld a,b
+        jr z, 2F
+        ld (last_keyp),a
+        ret
+
+1    
+        ld (last_keyp),a
+        ret
+
+2
+        ld a,$ff
+        ret
+
+
+;****************************************************************
+;****        doactions: key board actions             ****
+;*****************************************************************
+doactions
+    
+    cp $36 ;Q = Quit
+    jr nz,1F
+        ld a, $ff
+        ld (game_overflag),a
+        ret
+
+1   cp $72 ; < = left
+    jr nz,1F
+        call move_left
+        ret
+
+1   cp $73; >  = right
+    jr nz, 1F
+        call move_right
+        ret
+
+1   cp $26; A = rotate CW
+    jr nz, 1F
+        call rotateCW
+        ret
+
+1   cp $29; D = rotate ACW
+    jr nz, 1F
+        call rotateACW
+        ret
+
+1   cp $38; S = Drop
+    jr nz, 1F
+        
+        ld a,$01
+        ld (delay_counter),a
+        ld a,(speed)
+        ld (speed_store),A
+        ld a, DROP_SPEED
+        ld (speed),A
+        ld a, $ff
+        ld (keyboard_block),a
+        ret
+
+1   cp $35; P = Pause
+    jr nz, 1F
+        ;pause code goes here
+        ret
+
 1
-	ld a,$ff
-	ret
+    ret
+
+;****************************************************************
+;****        move_left: try and move left                    ****
+;*****************************************************************
+move_left
+    ld a,(tetro_x)
+
+    call undraw_tetro
+    ld a, (tetro_x)
+    dec A
+    ld (tetro_x),a
+    call collisioncheck
+    ld a, (can_move)
+    cp $00
+    jr z, 1F
+    ld a, (tetro_x)
+    inc A
+    ld (tetro_x),a
+    call render_tetro
+1       
+    ret
+
+;****************************************************************
+;****        move_right: try and move left                    ****
+;*****************************************************************
+move_right
+    ld a,(tetro_x)
+
+    call undraw_tetro
+    ld a, (tetro_x)
+    inc A
+    ld (tetro_x),a
+    call collisioncheck
+    ld a, (can_move)
+    cp $00
+    jr z, 1F
+    ld a, (tetro_x)
+    dec A
+    ld (tetro_x),a
+    call render_tetro
+1       
+    ret
+
+;****************************************************************
+;****        rotateCW: try and rotate CW                      ****
+;*****************************************************************
+rotateCW
+    call undraw_tetro
+    
+    ld a, (tetro_rotation)
+    ld (temp_rotation),A
+
+    cp $03
+    jr z, 1F
+        inc A
+        ld (tetro_rotation),A
+        call checkrotation
+        ret  
+
+1       ld a, $00
+        ld (tetro_rotation),A
+        call checkrotation    
+    ret
+
+;****************************************************************
+;****        rotateACW: try and rotate ACW                      ****
+;*****************************************************************
+rotateACW
+    call undraw_tetro
+    
+    ld a, (tetro_rotation)
+    ld (temp_rotation),A
+
+    cp $00
+    jr z, 1F
+        dec A
+        ld (tetro_rotation),A
+        call checkrotation
+        ret  
+
+1       ld a, $03
+        ld (tetro_rotation),A
+        call checkrotation    
+    
+    ret
+
+;****************************************************************
+;****        checkrotation: can it rotate                    ****
+;*****************************************************************
+checkrotation
+    call collisioncheck
+    
+    ld (can_move),A
+    cp $FF
+    jr nz,1F
+    ;if it can't move then put things back to how they were
+    ld a,(temp_rotation)
+    ld (tetro_rotation),a
+1    
+    ret
+
+;****************************************************************
+;****       collision check: does does it collide             ****
+;*****************************************************************
+collisioncheck
+    ld a, $00
+    ld (can_move), A
+    ret
 
 ;****************************************************************
 ;****        spawn: random tetro number                   ****
 ;*****************************************************************
 spawn
-	call get_tetro
 	
+	;set current tetro to next tetro
+    ld a,(next_tetro)
+    ld (current_tetro),a
+    ;set tetro character for drawing tetro
+    cp $00
+    jr nz,1F
+        ld a,$97 ; inverese star
+        
+        jr 7F
+1   cp $01
+    jr nz,2F
+        ld a,$08 ;inverse checkerboard
+         jr 7F
+2   cp $02
+    jr nz,3F
+        ld a,$B4 ;inverse O
+         jr 7F
+3   cp $03
+    jr nz,4F
+        ld a,$95 ; inverse . 
+         jr 7F
+4   cp $04
+    jr nz,5F
+        ld a,$BD ; inverse X
+         jr 7F
+5   cp $05
+    jr nz,6F
+        ld a,$08 ;checkerboard
+        jr 7F
+6
+    ld a,$80; inverse space
+
+7
+    ld (current_tetro_char),a
+
+    ;get randon next tetro
+    call get_tetro
+    ld (next_tetro),a
+    
+    ;display current tetro and next tetro
+    add a,$1C
+    ld (Display+35),a
+    ld a,(current_tetro)
+    add a, $1C
+    ld (Display+34),a
+
+    ld a,$0
+    ld (tetro_y),a
+    ld (tetro_rotation),a
+    ld a,$04
+    ld (tetro_x),a
+    
+    
+
+    
+
 	ret
 
 
@@ -327,9 +541,11 @@ spawn
 ;****        get_tetro: random tetro number                   ****
 ;*****************************************************************
 get_tetro
-	ld a,($4034)
+1	
+    ld a,($4034)
 	and $07
-	ld (current_tetro),a
+    cp a,$07
+	jr z, 1B
 	ret
 
 ;****************************************************************
@@ -346,19 +562,7 @@ move_y
 	
 	ret
 
-;****************************************************************
-;****     bump_tetro_counter: counts between 0 and 6          ****
-;*****************************************************************
-bump_tetro_counter
-	ld a,(tetro_counter)
-	inc a
-	cp a,$07
-	jp nz,carry_on
-	ld a, $00
-carry_on
-	ld (tetro_counter),a
-	ret
-
+ 
 ;****************************************************************
 ;****    undraw_tetro:delete tetro from Playfield              ****
 ;*****************************************************************
@@ -396,7 +600,7 @@ undraw_tetro
 	ld a,(tetro_y)
 	cp a,0
 	jp z,2F
-	ld de,WELL_WIDTH+2	
+	ld de,WELL_WIDTH+3	
 1	
 		adc hl,de
 		dec a
@@ -427,7 +631,7 @@ undraw_tetro
 		inc de
 		djnz 2B
 	push de
-	ld de, WELL_WIDTH+2-TETRO_SIZE
+	ld de, WELL_WIDTH+3-TETRO_SIZE
 	add hl,de
 	pop de
 	pop bc
