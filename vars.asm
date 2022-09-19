@@ -38,7 +38,11 @@ speed_store
         DEFB 00
 can_move
         DEFB 00
-
+first_tetro
+        DEFB 00        
+game_over
+        DEFB 00
+        
 tetrominoZero
 
 ;//rotation states of I tetromino 0
