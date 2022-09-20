@@ -612,8 +612,7 @@ spawn
     ;set tetro character for drawing tetro
     cp $00
     jr nz,1F
-        ld a,$97 ; inverese star
-        
+        ld a,$97 ; inverese star  
         jr 7F
 1   cp $01
     jr nz,2F
@@ -625,7 +624,7 @@ spawn
          jr 7F
 3   cp $03
     jr nz,4F
-        ld a,$95 ; inverse . 
+        ld a,$34 ; 0 
          jr 7F
 4   cp $04
     jr nz,5F
@@ -636,7 +635,7 @@ spawn
         ld a,$08 ;checkerboard
         jr 7F
 6
-    ld a,$80; inverse space
+    ld a,$95; inverse + 
 
 7
     ld (current_tetro_char),a
@@ -673,6 +672,57 @@ spawn
 ;****************************************************************
 ;****************************************************************
 clear_rows
+    ;clear the score multiplier
+    ld a,$00
+    ld (clearedrows),a
+    
+    ;move to bottom row of playfield
+    ld hl,playfield
+	ld de,(WELL_WIDTH+3)*(WELL_HEIGHT-1)	
+	add hl,de
+    inc hl
+    
+    ;now check every row to see if it is complete
+        ld b,WELL_HEIGHT-1
+    ld de,WELL_WIDTH+3
+    
+  
+1
+    push hl
+    ld c,$00
+2
+    inc hl
+    inc c
+    ld a,(hl)
+    cp a,$00
+    jr z,3F
+    ld a,c
+    cp a,WELL_WIDTH    
+    jr nz,2B
+    push hl
+    push de
+    push bc
+
+    call remove_row
+    pop bc
+    pop de
+    pop hl
+    ld a,(clearedrows)
+    inc a
+    ld (clearedrows),a
+3  
+    pop hl
+	sub hl,de
+    djnz 1B
+    ret
+
+
+;****************************************************************
+;****************************************************************
+;****   remove_row: remove a specific row because it is full  ***
+;****************************************************************
+;****************************************************************
+remove_row
 
 	ret
 
@@ -805,7 +855,7 @@ undraw_tetro
 	djnz 1B
 	ret
 
-
+code_end
 ;****************************************************************
 ;****************************************************************
 ;****    Code ends here and REM statements completes         ****

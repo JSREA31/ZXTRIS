@@ -42,7 +42,8 @@ first_tetro
         DEFB 00        
 game_over
         DEFB 00
-        
+clearedrows
+        DEFB 00        
 tetrominoZero
 
 ;//rotation states of I tetromino 0
