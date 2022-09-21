@@ -683,9 +683,8 @@ clear_rows
     inc hl
     
     ;now check every row to see if it is complete
-        ld b,WELL_HEIGHT-1
+    ld b,WELL_HEIGHT-1
     ld de,WELL_WIDTH+3
-    
   
 1
     push hl
@@ -699,17 +698,20 @@ clear_rows
     ld a,c
     cp a,WELL_WIDTH    
     jr nz,2B
+    pop hl
     push hl
     push de
     push bc
-
     call remove_row
     pop bc
     pop de
     pop hl
+    push hl
     ld a,(clearedrows)
     inc a
     ld (clearedrows),a
+    ld c,$00
+    jp 2B
 3  
     pop hl
 	sub hl,de
@@ -723,6 +725,61 @@ clear_rows
 ;****************************************************************
 ;****************************************************************
 remove_row
+
+;playfield address is in hl
+;row is in b
+
+    
+    ld a,b
+    ld (full_row),a
+    inc hl
+    ld de,hl
+    ld bc,WELL_WIDTH+3
+    sbc hl,bc
+    
+    ;row to move down = hl
+    ;row to be cleared = de
+  
+
+
+    ld a,(full_row)
+    ld b,a    
+1
+    ld c,$00
+2
+    ld a,(hl)
+    ld (de),a
+    inc de
+    inc hl
+    inc c
+    ld a,c
+    cp a, WELL_WIDTH
+    jr nz,2B
+    
+    ld a,(2*WELL_WIDTH)+3
+    ld e,a
+	ld d,0
+	sbc hl,de
+    push hl
+    ld a,WELL_WIDTH+3
+    ld e,a
+	ld d,0
+	adc hl,de
+    ld de,hl
+    pop hl 
+    djnz 1B
+
+
+
+    
+
+
+;move a row down
+
+
+;full row is in hl
+;above row is in de
+
 
 	ret
 
