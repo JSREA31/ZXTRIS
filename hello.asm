@@ -771,16 +771,6 @@ remove_row
 
 
 
-    
-
-
-;move a row down
-
-
-;full row is in hl
-;above row is in de
-
-
 	ret
 
 
