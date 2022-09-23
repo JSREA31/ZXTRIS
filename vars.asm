@@ -47,7 +47,7 @@ clearedrows
 full_row
         DEFB 00
 scoreBCD1
-        DEFB 00                        
+        DEFB 00,00                        
 tetrominoZero
 
 ;//rotation states of I tetromino 0
