@@ -45,7 +45,9 @@ game_over
 clearedrows
         DEFB 00
 full_row
-        DEFB 00                
+        DEFB 00
+scoreBCD1
+        DEFB 00                        
 tetrominoZero
 
 ;//rotation states of I tetromino 0
