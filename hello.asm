@@ -252,18 +252,12 @@ display_level
 title_screen
 ;draw logo
     ld de,Display+(SCREEN_WIDTH*2)+1
-    ld hl,logo
+    ld hl,logo2
     ld b,0
 1
     ld a,(hl)
     cp a, $FF
     jr z, 5F
-        cp a,$31
-        jp nz,2F
-        ld a,$80
-        jp 3F
-2   
-    ld a,$00
 3   ld (de),a
     inc hl
     inc de
