@@ -25,8 +25,8 @@ code_start
 
 main_loop	
 	;title screen - goes here
-
-    call display_score
+    
+    
 
 wait_spacebar
 	call get_keyboard
@@ -44,9 +44,9 @@ game_loop
     jp endofgame
 2
 ;update I'm alive counter
-	LD A,($4034)
-	AND $0f
-	ld (Display+1),a
+	;LD A,($4034)
+	;AND $0f
+	;ld (Display+1),a
 ;end of I'm alive counter
 		
 	ld a, (delay_counter)
@@ -64,6 +64,8 @@ game_loop
 	
 	call render_tetro
 	call render_playfield
+    call display_score
+    call display_level
 	
 	jp game_loop
 
@@ -236,6 +238,17 @@ floor
 start_screen
 	ret
 
+;****************************************************************
+;****************************************************************
+;****           display_level:show level                     ***
+;****************************************************************
+;****************************************************************
+display_level
+    ld hl,Display+30+33
+    ld a,(level)
+    add $1C
+    ld (hl),a
+	ret
 
 ;****************************************************************
 ;****************************************************************
@@ -243,6 +256,7 @@ start_screen
 ;****************************************************************
 ;****************************************************************
 endofgame
+    jp main_loop
 	ret
 
 
@@ -257,14 +271,14 @@ init_game
 	call get_tetro
     ld (next_tetro),a
 
-    ;reset game over flag
-    ld a,$00
-    ld (game_overflag),a
 
     ;clear the playfield
 	call new_Well
 
     ;clear the score
+    ld hl,0
+    ld(score),hl
+    ld (totalrows),hl
 
 	;clear the level
 	ld a,LEVEL1_DELAY
@@ -286,7 +300,22 @@ init_game
 	;draw tetro and set x,y
 	call spawn
 
-	ret
+    ;score and level text
+    ld hl,scoreandleveltext
+    ld de,Display+23
+    call print_string 
+	
+    ;next tero label
+    ld hl,nexttext
+    ld de,Display+(SCREEN_WIDTH*8)+2
+    call print_string 
+
+    ;zxtris tero label
+    ld hl,zxtristext
+    ld de,Display+1
+    call print_string 
+
+    ret
 
 
 ;****************************************************************    
@@ -300,10 +329,75 @@ clear_screen
 
 ;****************************************************************    
 ;****************************************************************
-;****       display_score: conbert to BCD and display        ****
+;****   display_score: convert score to text and display     ****
 ;***************************************************************
 ;****************************************************************
 display_score
+
+    ld hl,(score)
+    ld de,TENTHOUSAND
+    ld a,0
+1       
+    sbc hl,de
+    inc a
+    jr nc,1B
+    dec a
+    ld (scoredigits),a
+    add hl,de
+    CCF
+
+    ld de,THOUSAND
+    ld a,0
+1       
+    sbc hl,de
+    inc a
+    jr nc,1B
+    dec a
+    ld (scoredigits+1),a
+    add hl,de
+    CCF
+
+
+    ld de,HUNDRED
+    ld a,0
+1       
+    sbc hl,de
+    inc a
+    jr nc,1B
+    dec a
+  
+    ld (scoredigits+2),a
+    add hl,de
+    CCF
+
+
+    ld de,TEN
+    ld a,0
+1       
+    sbc hl,de
+    inc a
+    jr nc,1B
+    dec a
+    ld (scoredigits+3),a
+    add hl,de
+    CCF
+
+
+    ld a,l
+    ld (scoredigits+4),a
+    
+    ld hl,Display+23+33
+    ld de,scoredigits
+    ld b,5
+1
+    ld a,(de)
+    add $1C
+    ld (hl),a
+    inc hl
+    inc de
+    djnz 1B
+
+
     ret
 
 
@@ -353,7 +447,7 @@ doactions
     cp $36 ;Q = Quit
     jr nz,1F
         ld a, $ff
-        ld (game_overflag),a
+        ld (game_over),a
         ret
 
 1   cp $72 ; < = left
@@ -391,7 +485,24 @@ doactions
 
 1   cp $35; P = Pause
     jr nz, 1F
-        ;pause code goes here
+        ;pause label
+        ld hl,pausetext
+        ld de,Display+(SCREEN_WIDTH*18)+1
+        call print_string 
+2       call get_keyboard
+        cp a, $35
+		jp nz,3F
+        
+        ld hl,deletepausetext
+        ld de,Display+(SCREEN_WIDTH*18)+1
+        call print_string 
+        call render_playfield
+        call render_tetro
+        ret
+3   
+
+        jp 2B 
+
         ret
 
 1
@@ -621,6 +732,44 @@ spawn
     ;set current tetro to next tetro
     ld a,(next_tetro)
     ld (current_tetro),a
+    call get_tetro_char
+    ld (current_tetro_char),a
+
+    ;get randon next tetro
+    call get_tetro
+    ld (next_tetro),a
+    call get_tetro_char
+    ld (next_tetro_char),a
+    
+    ;display current tetro and next tetro
+    ;add a,$1C
+    ;ld (Display+35),a
+    ;ld a,(current_tetro)
+    ;add a, $1C
+    ;ld (Display+34),a
+
+    ld a,$0
+    ld (tetro_y),a
+    ld (tetro_rotation),a
+    ld a,$04
+    ld (tetro_x),a
+    
+    ld a,(speed_store)
+    ld (speed),a
+    ld (delay_counter),a
+    ld a,$00
+    ld (keyboard_block),a
+
+    call render_nexttetro
+	ret
+
+
+;****************************************************************
+;****************************************************************
+;****    get tetro char: tetro in via a, char out via a      ****
+;****************************************************************
+;****************************************************************
+get_tetro_char
     ;set tetro character for drawing tetro
     cp $00
     jr nz,1F
@@ -650,33 +799,8 @@ spawn
     ld a,$95; inverse + 
 
 7
-    ld (current_tetro_char),a
 
-    ;get randon next tetro
-    call get_tetro
-    ld (next_tetro),a
-    
-    ;display current tetro and next tetro
-    ;add a,$1C
-    ;ld (Display+35),a
-    ;ld a,(current_tetro)
-    ;add a, $1C
-    ;ld (Display+34),a
-
-    ld a,$0
-    ld (tetro_y),a
-    ld (tetro_rotation),a
-    ld a,$04
-    ld (tetro_x),a
-    
-    ld a,(speed_store)
-    ld (speed),a
-    ld (delay_counter),a
-    ld a,$00
-    ld (keyboard_block),a
-
-	ret
-
+    ret
 
 ;****************************************************************
 ;****************************************************************
@@ -710,6 +834,9 @@ clear_rows
     ld a,c
     cp a,WELL_WIDTH    
     jr nz,2B
+    ld a,(clearedrows)
+    inc a
+    ld (clearedrows),a
     pop hl
     push hl
     push de
@@ -719,9 +846,6 @@ clear_rows
     pop de
     pop hl
     push hl
-    ld a,(clearedrows)
-    inc a
-    ld (clearedrows),a
     ld c,$00
     jp 2B
 3  
@@ -781,8 +905,58 @@ remove_row
     pop hl 
     djnz 1B
 
+;add  to score
 
-	ret
+    ld a,(level)
+    ld b,a
+    xor a
+1   add $05
+    djnz 1B    
+
+    push af
+    
+    ld a,(level)
+    ld b,a
+
+    pop af
+1   add a
+    djnz 1B
+
+    
+    ld d,0
+    ld e,a
+    ld hl,(score)
+    add hl,de
+    ld (score),hl
+
+;add to total rows
+    ld hl,(totalrows)
+    inc hl
+    ld (totalrows),hl
+
+;check level (every 10 rows cleared level increases)
+    ld a,(totalrows)
+    cp 6
+    jr c, 3F
+        ld a,0
+        ld (totalrows),a
+        ld a,(level)
+        inc a
+        cp a,11
+        jr c, 2F
+        ld a,10
+        ld (level),a
+        ret
+;adjust speed
+2       ld (level),a
+        ld a,(speed_store)
+        sub 5
+        ld (speed),a
+        ld (speed_store),a
+
+3
+    ret
+
 
 
 ;****************************************************************
@@ -791,9 +965,36 @@ remove_row
 ;****************************************************************
 ;****************************************************************
 update_score
+    ld hl,(score)
+    ld a,(level)
+    ld b,a
+1   inc hl
+    ld(score),hl
+	djnz 1B
+    ret
 
-	ret
 
+;****************************************************************
+;****************************************************************
+;****     print string: write string from hl to de until ff   ***
+;****************************************************************
+;****************************************************************
+print_string
+1
+    ld a,(hl)
+    cp a, $FF
+    jr z, 2F
+    sub 27
+    cp a,$5
+    jr nz,3F
+    ld a,$00
+3    ld (de),a
+    inc hl
+    inc de
+    jp 1B
+2
+
+ret    
 
 ;****************************************************************
 ;****************************************************************
@@ -913,6 +1114,65 @@ undraw_tetro
 	pop bc
 	djnz 1B
 	ret
+;****************************************************************
+;****************************************************************
+;****    render_nexttetro:render next tetro to Screen        ****
+;****************************************************************
+;****************************************************************
+render_nexttetro
+;Find out tetro start, using tetro number and rotation state
+
+;step 1 which tetro
+	ld hl,tetrominoZero
+	ld a,(next_tetro)
+	cp a,0
+	jp z,2F
+	ld de,TETRO_BLOCK*4
+1	
+		adc hl,de
+		dec a
+		jp nz,1B
+2
+	push hl
+
+;get start of plot area
+	ld hl,Display+(SCREEN_WIDTH*10)+2
+	ld a,(tetro_y)
+	cp a,$0
+	jp z,2F
+	ld de,SCREEN_WIDTH
+1	
+		adc hl,de
+		dec a
+		jp nz,1B
+2
+
+
+;now draw the tetro onto screen
+	pop de
+	ld b,TETRO_SIZE
+1
+	push bc
+	ld b,TETRO_SIZE	
+2		
+		ld a,(de)
+		cp a, $40
+		jp z,3F
+			ld a,(next_tetro_char)
+            jp 4F
+3       ld a,$00 
+4		ld (hl),a
+        inc hl
+		inc de
+		djnz 2B
+	push de
+	ld de, SCREEN_WIDTH-TETRO_SIZE
+	add hl,de
+	pop de
+	pop bc
+	djnz 1B
+	ret
+
 
 code_end
 ;****************************************************************

@@ -2,10 +2,21 @@
 playfield 
 		BLOCK ((WELL_HEIGHT+1)*(WELL_WIDTH+3)),$ff
 
-hello_txt
-		DEFM	"HELLO WORLD"
+scoreandleveltext
+		DEFM	"SCORE  L"
 		DEFB 	$FF
-
+nexttext
+        DEFM	"NEXT"
+		DEFB 	$FF
+zxtristext
+        DEFM	"ZXTRIS"
+		DEFB 	$FF
+pausetext
+        DEFM    "PAUSED -- P TO PLAY OR Q TO QUIT"
+        DEFB    $FF
+deletepausetext
+        DEFM    "                                "
+        DEFB    $FF                
 tetro_counter
 		DEFB $00
 current_tetro
@@ -28,8 +39,8 @@ last_keyp
         DEFB 10
 current_tetro_char
         DEFB 00
-game_overflag
-        DEFB 00
+next_tetro_char
+        DEFB 00        
 speed
         DEFB 00
 keyboard_block
@@ -44,10 +55,14 @@ game_over
         DEFB 00
 clearedrows
         DEFB 00
+totalrows
+        DEFW 0000        
 full_row
         DEFB 00
-scoreBCD1
-        DEFB 00,00                        
+scoredigits
+        DEFB 00,00,00,00,00
+score 
+    DEFW 12345
 tetrominoZero
 
 ;//rotation states of I tetromino 0
