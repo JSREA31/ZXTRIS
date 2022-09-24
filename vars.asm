@@ -17,6 +17,19 @@ pausetext
 deletepausetext
         DEFM    "                                "
         DEFB    $FF                
+gameovertext
+        DEFM    "GAME OVER - PRESS SPACE"
+        DEFB    $FF
+titlescreen2text
+        DEFM    "PRESS SPACE TO START"
+        DEFB    $FF              
+logo
+        DEFM    "11111010001011111011100111001110"
+        DEFM    "00010001010000100010010010010000"
+        DEFM    "00100000100000100011100010001100"
+        DEFM    "01000001010000100010010010000010"
+        DEFM    "11111010001000100010010111011100"
+        DEFB    $ff       
 tetro_counter
 		DEFB $00
 current_tetro

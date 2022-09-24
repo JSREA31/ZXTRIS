@@ -24,20 +24,14 @@ code_start
 	include vars.asm
 
 main_loop	
-	;title screen - goes here
+	call title_screen
     
-    
-
-wait_spacebar
-	call get_keyboard
-		cp a, $00
-		jp nz,wait_spacebar
 	call init_game
 
 
 game_loop	
 
-;check for end of game
+;check for end of gamaae
     ld a,(game_over)
     cp a, $ff
     jr nz, 2F
@@ -252,10 +246,61 @@ display_level
 
 ;****************************************************************
 ;****************************************************************
+;****          title_screen: title screen                    ***
+;****************************************************************
+;****************************************************************
+title_screen
+;draw logo
+    ld de,Display+(SCREEN_WIDTH*2)+1
+    ld hl,logo
+    ld b,0
+1
+    ld a,(hl)
+    cp a, $FF
+    jr z, 5F
+        cp a,$31
+        jp nz,2F
+        ld a,$80
+        jp 3F
+2   
+    ld a,$00
+3   ld (de),a
+    inc hl
+    inc de
+    inc b
+    ld a,b
+    cp a, 32
+    jr nz, 4F
+        ld b,0
+        inc de
+4    
+    jp 1B
+5
+
+    ld hl,titlescreen2text
+    ld de,Display+(SCREEN_WIDTH*13)+7
+    call print_string 
+
+2   call get_keyboard
+    cp a, $00
+	jp nz,2B
+    call CLS
+	ret
+
+;****************************************************************
+;****************************************************************
 ;****           end of game: manage end of game               ***
 ;****************************************************************
 ;****************************************************************
 endofgame
+    ;display game over text
+    ld hl,gameovertext
+    ld de,Display+(SCREEN_WIDTH*18)+4
+    call print_string 
+2   call get_keyboard
+    cp a, $00
+	jp nz,2B
+    call CLS
     jp main_loop
 	ret
 
@@ -316,15 +361,6 @@ init_game
     call print_string 
 
     ret
-
-
-;****************************************************************    
-;****************************************************************
-;****           clear_screen: clear the screen               ****
-;****************************************************************
-;****************************************************************
-clear_screen
-	ret
 
 
 ;****************************************************************    
@@ -492,21 +528,26 @@ doactions
 2       call get_keyboard
         cp a, $35
 		jp nz,3F
-        
-        ld hl,deletepausetext
-        ld de,Display+(SCREEN_WIDTH*18)+1
-        call print_string 
-        call render_playfield
-        call render_tetro
-        ret
-3   
+            ld hl,deletepausetext
+            ld de,Display+(SCREEN_WIDTH*18)+1
+            call print_string 
+            call render_playfield
+            call render_tetro
+            ret
+3       cp a, $36
+		jp nz,4F
+            ld hl,deletepausetext
+            ld de,Display+(SCREEN_WIDTH*18)+1
+            call print_string 
+            call render_playfield
+            call render_tetro
+            ld a,$ff
+            ld (game_over),a
+            ret 
+4        jp 2B 
 
-        jp 2B 
+1        ret
 
-        ret
-
-1
-    ret
 
 
 ;****************************************************************
