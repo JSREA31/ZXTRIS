@@ -344,7 +344,17 @@ doactions
         call move_left
         ret
 
+1   cp $27 ; < = left
+    jr nz,1F
+        call move_left
+        ret
+
 1   cp $73; >  = right
+    jr nz, 1F
+        call move_right
+        ret
+
+1   cp $32; >  = right
     jr nz, 1F
         call move_right
         ret
@@ -1022,20 +1032,77 @@ title_screen
     cp a, 32
     jr nz, 4F
         ld b,0
-        inc de
+            inc de
 4    
     jp 1B
 5
 
     ld hl,titlescreen2text
-    ld de,Display+(SCREEN_WIDTH*13)+7
+    ld de,Display+(SCREEN_WIDTH*9)+7
     call print_string 
 
-2   call get_keyboard
+    ld hl,instructions1text
+    ld de,Display+(SCREEN_WIDTH*14)+15
+    call print_string 
+
+    ld hl,instructions2text
+    ld de,Display+(SCREEN_WIDTH*16)+7
+    call print_string 
+
+    ld hl,instructions3text
+    ld de,Display+(SCREEN_WIDTH*17)+3
+    call print_string 
+
+    ld hl,instructions4text
+    ld de,Display+(SCREEN_WIDTH*18)+10
+    call print_string
+
+8    ld de,scrollingmessage+ SCREEN_WIDTH
+    
+6   
+    ;show message
+    ld hl,de
+    ld de,SCREEN_WIDTH
+    sbc hl,de
+    ld de,hl
+
+    ld hl,Display+1+(SCREEN_WIDTH*23)
+    ld b,32
+1
+    ld a,(de)
+    cp a, $FF
+    jr z, 8B
+2   sub 27
+    cp a,$5
+    jr nz,3F
+    ld a,$00
+3   ld (hl),a
+    inc hl
+    inc de
+    djnz 1B
+    
+    ld a,(scrolldelaycounter)
+    inc a
+    ld (scrolldelaycounter),a
+    ld bc,(scrolldelay)
+    cp a,c
+    jp nz,7F
+    
+    ld a,00
+    ld (scrolldelaycounter),a
+
+
+    inc de
+7  inc de
+   push de
+    call get_keyboard
+    pop de
     cp a, $00
-	jp nz,2B
+	jp nz,6B
     call CLS
 	ret
+
+
 
 
 ;****************************************************************

@@ -25,7 +25,31 @@ gameovertext
         DEFB    $FF
 titlescreen2text
         DEFM    "PRESS SPACE TO START"
-        DEFB    $FF                   
+        DEFB    $FF 
+instructions1text
+        DEFM    176+27,170+27,190+27,184+27
+        DEFB    $FF
+instructions2text
+        DEFM    167+27,47,"LEFT",53," ",178+27,47,"RIGHT",53," ",184+27,47,"DROP"
+        DEFB    $FF
+instructions3text
+        DEFM    166+27,47,"ROTATE LEFT",53," ",169+27,47,"ROTATE RIGHT"
+        DEFB    $FF   
+instructions4text
+        DEFM     181+27,47,"PAUSE",53," ",182+27,47,"QUIT"
+        DEFB    $FF              
+scrollingmessage
+        DEFM    "                                              "
+        DEFM    "ZXTRIS ", 57,55,57,57, " BY STEVE SMITH",54  
+        DEFM    " I LEARNED TO CODE IN BASIC ON MY ZX",63,56," OVER ", 59,55," YEARS AGO BUT THIS IS MY FIRST EVER Z",63,55," PROGRAM",54
+        DEFM    " WRITTEN WITH VSCODE",53," SJASMPLUS",53," DEZOG AND ZESARUX",54
+        DEFM    " THANKS TO MUTANT CATERPILLAR AND RWAP FOR KEEPING MY ZX",63,56," ALIVE",54
+        DEFM    "                                                "
+        DEFB    $FF                          
+scrolldelay
+        DEFB    45
+scrolldelaycounter
+        DEFB    00        
 logo2
         DEFM    $80,$80,$80,$80,$80,0,$80,$04,0,$87,$80,0,$85,$80,$80,$80,$05,0,$80,$80,$80,$04,0,$80,$80,$80,0,$87,$80,$80,$82,0
         DEFM    0,0,$87,$80,$01,0,$02,$80,$83,$80,$01,0,0,0,$80,0,0,0,$80,0,0,$80,0,0,$80,0,0,$80,$05,0,$03,0
