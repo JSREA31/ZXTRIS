@@ -2,9 +2,12 @@
 playfield 
 		BLOCK ((WELL_HEIGHT+1)*(WELL_WIDTH+3)),$ff
 
-scoreandleveltext
-		DEFM	"SCORE  L"
+hscoreandleveltext
+		DEFM	"HIGH   L"
 		DEFB 	$FF
+scoretext
+        DEFM    "SCORE"
+        DEFB    $FF
 nexttext
         DEFM	"NEXT"
 		DEFB 	$FF
@@ -74,9 +77,11 @@ totalrows
 full_row
         DEFB 00
 scoredigits
-        DEFB 00,00,00,00,00
+        DEFB 00,00,00,00,00        
+hscore
+        DEFW 00000
 score 
-    DEFW 12345
+        DEFW 12345
 tetrominoZero
 
 ;//rotation states of I tetromino 0

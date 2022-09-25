@@ -12,41 +12,9 @@ L0F55:       equ  0F55h
 L14A3:       equ  14A3h
 L4000:       equ  4000h
 L4007:       equ  4007h
-L400C:       equ  400Ch
 L4029:       equ  4029h
 L402B:       equ  402Bh
 L4030:       equ  4030h
-L466B:       equ  466Bh
-
-
-             org 0066h
-
-
-0066 L0066:
-0066 08           EX   AF,AF' 
-0067 3C           INC  A      
-0068 FA 6D 00     JP   M,L006D 
-006B 28 02        JR   Z,L006F 
-006D L006D:
-006D 08           EX   AF,AF' 
-006E C9           RET         
-006F L006F:
-006F 08           EX   AF,AF' 
-0070 F5           PUSH AF     
-0071 C5           PUSH BC     
-0072 D5           PUSH DE     
-0073 E5           PUSH HL     
-0074 2A 0C 40     LD   HL,(L400C) 
-0077 CB FC        SET  7,H    
-0079 76           HALT        
-007A D3 FD        OUT  (00FDh),A 
-007C DD E9        JP   (IX)   
-
-
-007E 3F           defb 3Fh    
-007F 3D           defb 3Dh    
-0080 28           defb 28h    
-0081 3B           defb 3Bh    
 
 
              org 0673h
@@ -307,24 +275,30 @@ L466B:       equ  466Bh
 0DF5 2A           defb 2Ah    
 
 
-             org 466Dh
+             org 45CFh
 
 
-466D L466D:
-466D FE FF        CP   FFh    
-466F 28 10        JR   Z,L4681 
-4671 12           LD   (DE),A 
-4672 23           INC  HL     
-4673 13           INC  DE     
-4674 04           INC  B      
-4675 78           LD   A,B    
-4676 BF           CP   A      
-4677 FE 20        CP   20h    
-4679 20 03        JR   NZ,L467E 
-467B 06 00        LD   B,00h  
-467D 13           INC  DE     
-467E L467E:
-467E C3 6B 46     JP   L466B  
-4681 L4681:
-4681 21 2C 42     LD   HL,422Ch 
-4684 11 2A 4D     LD   DE,4D2Ah 
+45CF L45CF:
+45CF 36 80        LD   (HL),80h 
+45D1 23           INC  HL     
+45D2 05           DEC  B      
+45D3 C2 CF 45     JP   NZ,L45CF 
+45D6 11 09 00     LD   DE,0009h 
+45D9 ED 52        SBC  HL,DE  
+45DB 11 D0 41     LD   DE,41D0h 
+45DE L45DE:
+45DE 1A           LD   A,(DE) 
+45DF BF           CP   A      
+45E0 FE FF        CP   FFh    
+45E2 28 08        JR   Z,L45EC 
+45E4 C6 79        ADD  A,79h  
+45E6 77           LD   (HL),A 
+45E7 23           INC  HL     
+45E8 13           INC  DE     
+45E9 C3 DE 45     JP   L45DE  
+45EC L45EC:
+45EC C9           RET         
+
+
+45ED C9           defb C9h    
+45EE 21           defb 21h    

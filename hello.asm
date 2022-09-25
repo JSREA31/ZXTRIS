@@ -23,15 +23,23 @@ code_start
 	jp main_loop
 	include vars.asm
 
+;****************************************************************
+;****************************************************************
+;****                     MAIN LOOP                          ****
+;****************************************************************
+;****************************************************************
 main_loop	
 	call title_screen
     
 	call init_game
-
-
+;****************************************************************
+;****************************************************************
+;****                       GAME LOOP                        ****
+;****************************************************************
+;****************************************************************
 game_loop	
 
-;check for end of gamaae
+;check for end of game
     ld a,(game_over)
     cp a, $ff
     jr nz, 2F
@@ -50,20 +58,122 @@ game_loop
 		ld a,(speed)
 		ld (delay_counter),a
 		call move_y
-1	
-	
-	call get_keyboard
+1	call get_keyboard
 	call doactions
-
-	
 	call render_tetro
 	call render_playfield
-    call display_score
-    call display_level
-	
+    call render_scoresandlevel
 	jp game_loop
 
+
+;****************************************************************
+;****************************************************************
+;****                   TETRIS LOGIC                         ****
+;****************************************************************
+;****************************************************************
+
+;****************************************************************
+;****************************************************************
+;****           init_game:setup game variables                ***
+;****************************************************************
+;****************************************************************
+init_game
+	
+    ;use this to work out next tetro (not quite randomn!) but only if this is the first tetro
+	call get_tetro
+    ld (next_tetro),a
+
+    ;clear the playfield
+	call new_Well
+
+    ;clear the score
+    ld hl,0
+    ld(score),hl
+    ld (totalrows),hl
+
+	;clear the level and set speeds
+	ld a,LEVEL1_DELAY
+    ld (speed),a
+    ld (speed_store),a
+	ld (delay_counter), a	
+    ld a, $01
+	ld (level),a
+
+    ;unblock keyboard and game over flag
+    ld a,$00
+    ld (keyboard_block),a
+    ld (game_over),a
     
+    ;set first tetro flag
+    ld a,$ff
+    ld (first_tetro),a
+    
+	;draw tetro and set x,y
+	call spawn
+    call draw_labels
+    ret
+
+
+;****************************************************************
+;****************************************************************
+;****           new_Well:Create Empty TETRIS well            ****
+;****************************************************************
+;****************************************************************
+new_Well
+;clear the entire playfied	
+	ld hl,playfield
+	ld b, WELL_HEIGHT+1
+next_row_well
+	ld c, WELL_WIDTH+3
+next_column_well
+		ld (hl),WELL_SPACE
+		inc hl
+		dec c
+		jp nz,next_column_well
+	dec b
+	jp nz, next_row_well
+    
+;draw walls
+
+	ld hl,playfield
+	ld b,WELL_HEIGHT
+	ld de,WELL_WIDTH+1
+next_row_wall
+	ld (hl), $00
+    inc hl
+    ld (hl),WELL_WAL_CHAR	
+	add hl,de
+	ld (hl),WELL_WAL_CHAR
+	inc hl
+	dec b
+	jp nz,next_row_wall
+
+;do bottom row	
+	or a
+	ld b,WELL_WIDTH+2
+    ld (hl),$00
+    inc hl
+floor
+	ld (hl),WELL_WAL_CHAR
+	inc hl
+	dec b
+	jp nz, floor	
+
+;logo
+    ld de,(WELL_WIDTH+2)-3
+    sbc hl,de
+    ld de,zxtristext
+1   ld a,(de)
+    cp a, $FF
+    jr z, 2F
+    add a,101
+    ld (hl),a
+    inc hl
+    inc de
+    jp 1B
+2   ret
+
+
 ;****************************************************************
 ;****************************************************************
 ;****    render_tetro:render tetro to Playfield              ****
@@ -78,8 +188,7 @@ render_tetro
 	cp a,0
 	jp z,2F
 	ld de,TETRO_BLOCK*4
-1	
-		adc hl,de
+1	    adc hl,de
 		dec a
 		jp nz,1B
 2
@@ -142,329 +251,79 @@ render_tetro
 
 ;****************************************************************
 ;****************************************************************
-;****    render_playfield:render playfield to Display        ****
+;****    undraw_tetro:delete tetro from Playfield            ****
 ;****************************************************************
 ;****************************************************************
-render_playfield
+undraw_tetro
 
-;get start position in screen memory
-	ld hl,Display
-	ld de,(START_ROW * SCREEN_WIDTH)+START_COLUMN+1
+;Find out tetro start, using tetro number and rotation state
+
+;step 1 which tetro
+	ld hl,tetrominoZero
+	ld a,(current_tetro)
+	cp a,0
+	jp z,2F
+	ld de,TETRO_BLOCK*4
+1	
+		adc hl,de
+		dec a
+		jp nz,1B
+2
+
+;step 2 which rotation state
+	ld a,(tetro_rotation)
+	cp a,0
+	jp z,2F
+	ld de,TETRO_BLOCK
+1	
+		adc hl,de
+		dec a
+		jp nz,1B
+2
+	push hl
+
+;get start of playfield plot area
+	ld hl,playfield
+	ld a,(tetro_y)
+	cp a,0
+	jp z,2F
+	ld de,WELL_WIDTH+3	
+1	
+		adc hl,de
+		dec a
+		jp nz,1B
+2
+	ld a,(tetro_x)
+	ld e,a
+	ld d,0
 	add hl,de
+	;inc hl
 
-;get start of playfield
-	ld de,playfield	
-	ld b, WELL_HEIGHT+1
-next_row_render
-	ld c, WELL_WIDTH+3
-next_column_render
+;now draw the tetro into playfield
+	pop de
+	ld b,TETRO_SIZE
+1
+	push bc
+	ld b,TETRO_SIZE	
+2		
 		ld a,(de)
-		ld (hl),a
+		cp a, $40
+		jp z,3F	
+		cp a,$23
+		jp nz,3F
+			ld a,WELL_SPACE
+			ld (hl),a
+3		
 		inc hl
 		inc de
-		dec c
-		jp nz,next_column_render
-		push de
-	ld de, SCREEN_WIDTH-(WELL_WIDTH+3)
+		djnz 2B
+	push de
+	ld de, WELL_WIDTH+3-TETRO_SIZE
 	add hl,de
 	pop de
-	dec b
-		jp nz, next_row_render
-
-
+	pop bc
+	djnz 1B
 	ret
-
-
-;****************************************************************
-;****************************************************************
-;****           new_Well:Create Empty TETRIS well            ****
-;****************************************************************
-;****************************************************************
-new_Well
-;clear the entire playfied	
-	ld hl,playfield
-	ld b, WELL_HEIGHT+1
-next_row_well
-	ld c, WELL_WIDTH+3
-next_column_well
-		ld (hl),WELL_SPACE
-		inc hl
-		dec c
-		jp nz,next_column_well
-	dec b
-	jp nz, next_row_well
-    
-;draw walls
-
-	ld hl,playfield
-	ld b,WELL_HEIGHT
-	ld de,WELL_WIDTH+1
-next_row_wall
-	ld (hl), $00
-    inc hl
-    ld (hl),WELL_WAL_CHAR	
-	add hl,de
-	ld (hl),WELL_WAL_CHAR
-	inc hl
-	dec b
-	jp nz,next_row_wall
-
-;do bottom row	
-	or a
-	;sbc hl,de
-	ld b,WELL_WIDTH+2
-    ld (hl),$00
-    inc hl
-floor
-	ld (hl),WELL_WAL_CHAR
-	inc hl
-	dec b
-	jp nz, floor	
-
-	ret
-
-
-;****************************************************************
-;****************************************************************
-;****           start_screen:draw startscreen                 ***
-;****************************************************************
-;****************************************************************
-start_screen
-	ret
-
-;****************************************************************
-;****************************************************************
-;****           display_level:show level                     ***
-;****************************************************************
-;****************************************************************
-display_level
-    ld hl,Display+30+33
-    ld a,(level)
-    add $1C
-    ld (hl),a
-	ret
-
-;****************************************************************
-;****************************************************************
-;****          title_screen: title screen                    ***
-;****************************************************************
-;****************************************************************
-title_screen
-;draw logo
-    ld de,Display+(SCREEN_WIDTH*2)+1
-    ld hl,logo2
-    ld b,0
-1
-    ld a,(hl)
-    cp a, $FF
-    jr z, 5F
-3   ld (de),a
-    inc hl
-    inc de
-    inc b
-    ld a,b
-    cp a, 32
-    jr nz, 4F
-        ld b,0
-        inc de
-4    
-    jp 1B
-5
-
-    ld hl,titlescreen2text
-    ld de,Display+(SCREEN_WIDTH*13)+7
-    call print_string 
-
-2   call get_keyboard
-    cp a, $00
-	jp nz,2B
-    call CLS
-	ret
-
-;****************************************************************
-;****************************************************************
-;****           end of game: manage end of game               ***
-;****************************************************************
-;****************************************************************
-endofgame
-    ;display game over text
-    ld hl,gameovertext
-    ld de,Display+(SCREEN_WIDTH*18)+4
-    call print_string 
-2   call get_keyboard
-    cp a, $00
-	jp nz,2B
-    call CLS
-    jp main_loop
-	ret
-
-
-;****************************************************************
-;****************************************************************
-;****           init_game:setup game variables                ***
-;****************************************************************
-;****************************************************************
-init_game
-	
-    ;use this to work out next tetro (not quite randomn!) but only if this is the first tetro
-	call get_tetro
-    ld (next_tetro),a
-
-
-    ;clear the playfield
-	call new_Well
-
-    ;clear the score
-    ld hl,0
-    ld(score),hl
-    ld (totalrows),hl
-
-	;clear the level
-	ld a,LEVEL1_DELAY
-    ld (speed),a
-    ld (speed_store),a
-	ld (delay_counter), a
-	
-    ld a, $01
-	ld (level),a
-
-    ld a,$00
-    ld (keyboard_block),a
-    ld (game_over),a
-
-    ld a,$ff
-    ld (first_tetro),a
-    
-
-	;draw tetro and set x,y
-	call spawn
-
-    ;score and level text
-    ld hl,scoreandleveltext
-    ld de,Display+23
-    call print_string 
-	
-    ;next tero label
-    ld hl,nexttext
-    ld de,Display+(SCREEN_WIDTH*8)+2
-    call print_string 
-
-    ;zxtris tero label
-    ld hl,zxtristext
-    ld de,Display+1
-    call print_string 
-
-    ret
-
-
-;****************************************************************    
-;****************************************************************
-;****   display_score: convert score to text and display     ****
-;***************************************************************
-;****************************************************************
-display_score
-
-    ld hl,(score)
-    ld de,TENTHOUSAND
-    ld a,0
-1       
-    sbc hl,de
-    inc a
-    jr nc,1B
-    dec a
-    ld (scoredigits),a
-    add hl,de
-    CCF
-
-    ld de,THOUSAND
-    ld a,0
-1       
-    sbc hl,de
-    inc a
-    jr nc,1B
-    dec a
-    ld (scoredigits+1),a
-    add hl,de
-    CCF
-
-
-    ld de,HUNDRED
-    ld a,0
-1       
-    sbc hl,de
-    inc a
-    jr nc,1B
-    dec a
-  
-    ld (scoredigits+2),a
-    add hl,de
-    CCF
-
-
-    ld de,TEN
-    ld a,0
-1       
-    sbc hl,de
-    inc a
-    jr nc,1B
-    dec a
-    ld (scoredigits+3),a
-    add hl,de
-    CCF
-
-
-    ld a,l
-    ld (scoredigits+4),a
-    
-    ld hl,Display+23+33
-    ld de,scoredigits
-    ld b,5
-1
-    ld a,(de)
-    add $1C
-    ld (hl),a
-    inc hl
-    inc de
-    djnz 1B
-
-
-    ret
-
-
-;****************************************************************
-;****************************************************************
-;****          get_keyboard: read and decode keyboard        ****
-;****************************************************************
-;****************************************************************
-get_keyboard
-	ld a,(keyboard_block)
-    cp a, $ff
-    jr z,1F
-
-    call KSCAN
-	ld b,h
-	ld c,l
-	ld d,c
-	inc d
-    ld a,$ff
-	jr z, 1F
-		call DECODE
-		ld a,(hl)   
-        ld b,a
-        ld a,(last_keyp)
-        cp b
-        ld a,b
-        jr z, 2F
-        ld (last_keyp),a
-        ret
-
-1    
-        ld (last_keyp),a
-        ret
-
-2
-        ld a,$ff
-        ret
 
 
 ;****************************************************************
@@ -539,9 +398,7 @@ doactions
             ld (game_over),a
             ret 
 4        jp 2B 
-
 1        ret
-
 
 
 ;****************************************************************
@@ -639,10 +496,37 @@ rotateACW
 1       ld a, $03
         ld (tetro_rotation),A
         call checkrotation    
-    
     ret
 
 
+;****************************************************************
+;****************************************************************
+;****        move_y: move tetro_down                         ****
+;****************************************************************
+;****************************************************************
+move_y
+	
+	call undraw_tetro
+	
+	ld a,(tetro_y)
+	inc a
+	ld (tetro_y),a
+	
+    call collisioncheck
+
+    ld a,(can_move)
+    cp a, $ff
+    jr nz, 1F
+    ld a,(tetro_y)
+    dec a
+    ld (tetro_y),a
+    call render_tetro
+    call update_score
+    call spawn
+1
+	ret
+
+ 
 ;****************************************************************
 ;****************************************************************
 ;****        checkrotation: can it rotate                    ****
@@ -741,21 +625,33 @@ collisioncheck
 	djnz 1B
 	ret
     
+
 ;****************************************************************
 ;****************************************************************
 ;****        spawn: new tetro and do some checks             ****
 ;****************************************************************
 ;****************************************************************
 spawn
-	;check for last tetro on row zero
+	
+    ;check for last tetro on row zero
 	ld (first_tetro),a
     cp a, $ff
     jr z,3F
     call clear_rows
+    
+    ;update high score
+    CCF
+    ld de,(score)
+    ld hl,(hscore)
+    sbc hl,de
+    jr nc,1F
+    ld hl,(score)
+    ld (hscore),hl
+1
     ld a,(tetro_y)
     cp a, $00
     jr nz, 3F
-    
+
     ld a,$ff
     ld (game_over),a
     ret
@@ -775,26 +671,16 @@ spawn
     ld (next_tetro),a
     call get_tetro_char
     ld (next_tetro_char),a
-    
-    ;display current tetro and next tetro
-    ;add a,$1C
-    ;ld (Display+35),a
-    ;ld a,(current_tetro)
-    ;add a, $1C
-    ;ld (Display+34),a
-
     ld a,$0
     ld (tetro_y),a
     ld (tetro_rotation),a
     ld a,$04
-    ld (tetro_x),a
-    
+    ld (tetro_x),a    
     ld a,(speed_store)
     ld (speed),a
     ld (delay_counter),a
     ld a,$00
     ld (keyboard_block),a
-
     call render_nexttetro
 	ret
 
@@ -833,9 +719,7 @@ get_tetro_char
 6
     ld a,$95; inverse + 
 
-7
-
-    ret
+7   ret
 
 ;****************************************************************
 ;****************************************************************
@@ -855,8 +739,7 @@ clear_rows
     
     ;now check every row to see if it is complete
     ld b,WELL_HEIGHT-1
-    ld de,WELL_WIDTH+3
-  
+    ld de,WELL_WIDTH+3 
 1
     push hl
     ld c,$00
@@ -900,7 +783,6 @@ remove_row
 ;playfield address is in hl
 ;row is in b
 
-    
     ld a,b
     ld (full_row),a
     inc hl
@@ -911,8 +793,6 @@ remove_row
     ;row to move down = hl
     ;row to be cleared = de
   
-
-
     ld a,(full_row)
     ld b,a    
 1
@@ -956,8 +836,6 @@ remove_row
     pop af
 1   add a
     djnz 1B
-
-    
     ld d,0
     ld e,a
     ld hl,(score)
@@ -971,7 +849,7 @@ remove_row
 
 ;check level (every 10 rows cleared level increases)
     ld a,(totalrows)
-    cp 6
+    cp 10
     jr c, 3F
         ld a,0
         ld (totalrows),a
@@ -993,7 +871,6 @@ remove_row
     ret
 
 
-
 ;****************************************************************
 ;****************************************************************
 ;****        update_score: bump score when tetro drops        ***
@@ -1007,6 +884,295 @@ update_score
     ld(score),hl
 	djnz 1B
     ret
+
+
+;****************************************************************
+;****************************************************************
+;****           end of game: manage end of game               ***
+;****************************************************************
+;****************************************************************
+endofgame
+    ;display game over text
+    call rendergameovertext
+2   call get_keyboard
+    cp a, $00
+	jp nz,2B
+    call CLS
+    jp main_loop
+	ret
+
+
+;****************************************************************
+;****************************************************************
+;****              IO ROUTINES (ZX81 SPECIFIC)               ****
+;****************************************************************
+;****************************************************************
+
+;****************************************************************
+;****************************************************************
+;****              draw_labels: draw screen lables           ****
+;****************************************************************
+;****************************************************************
+draw_labels
+ ;hscore and level text
+    ld hl,hscoreandleveltext
+    ld de,Display+23
+    call print_string 
+	
+    ;score text
+    ld hl,scoretext
+    ld de,Display+1
+    call print_string 
+
+    ;next tero label
+    ld hl,nexttext
+    ld de,Display+(SCREEN_WIDTH*8)+2
+    call print_string 
+
+    ret
+
+
+;****************************************************************
+;****************************************************************
+;****    render_scores and level:show score and level        ****
+;****************************************************************
+;****************************************************************
+render_scoresandlevel
+    ;display the score
+    ld hl,(score)
+    call convert_score
+    ld hl,Display+(SCREEN_WIDTH)+1
+    call display_score 
+
+    ;display high score
+    ld hl,(hscore)
+    call convert_score
+    ld hl,Display+23+(SCREEN_WIDTH)
+    call display_score
+
+    call display_level
+    ret
+
+
+;****************************************************************
+;****************************************************************
+;****    render_playfield:render playfield to Display        ****
+;****************************************************************
+;****************************************************************
+render_playfield
+
+;get start position in screen memory
+	ld hl,Display
+	ld de,(START_ROW * SCREEN_WIDTH)+START_COLUMN+1
+	add hl,de
+
+;get start of playfield
+	ld de,playfield	
+	ld b, WELL_HEIGHT+1
+next_row_render
+	ld c, WELL_WIDTH+3
+next_column_render
+		ld a,(de)
+		ld (hl),a
+		inc hl
+		inc de
+		dec c
+		jp nz,next_column_render
+		push de
+	ld de, SCREEN_WIDTH-(WELL_WIDTH+3)
+	add hl,de
+	pop de
+	dec b
+		jp nz, next_row_render
+	ret
+
+
+;****************************************************************
+;****************************************************************
+;****           display_level:show level                     ***
+;****************************************************************
+;****************************************************************
+display_level
+    ld hl,Display+30+33
+    ld a,(level)
+    add $1C
+    ld (hl),a
+	ret
+
+
+;****************************************************************
+;****************************************************************
+;****          title_screen: title screen                    ***
+;****************************************************************
+;****************************************************************
+title_screen
+;draw logo
+    ld de,Display+(SCREEN_WIDTH*2)+1
+    ld hl,logo2
+    ld b,0
+1
+    ld a,(hl)
+    cp a, $FF
+    jr z, 5F
+3   ld (de),a
+    inc hl
+    inc de
+    inc b
+    ld a,b
+    cp a, 32
+    jr nz, 4F
+        ld b,0
+        inc de
+4    
+    jp 1B
+5
+
+    ld hl,titlescreen2text
+    ld de,Display+(SCREEN_WIDTH*13)+7
+    call print_string 
+
+2   call get_keyboard
+    cp a, $00
+	jp nz,2B
+    call CLS
+	ret
+
+
+;****************************************************************
+;****************************************************************
+;****      rendergameovertext: show game over                 ***
+;****************************************************************
+;****************************************************************
+rendergameovertext
+     ld hl,gameovertext
+    ld de,Display+(SCREEN_WIDTH*18)+4
+    call print_string 
+    ret
+
+
+;****************************************************************    
+;****************************************************************
+;****   display_score: display score to screen              ****
+;***************************************************************
+;****************************************************************
+display_score
+
+;hl = display
+    
+    ld de,scoredigits
+    
+    ld b,5
+1
+    ld a,(de)
+    add $1C
+    ld (hl),a
+    inc hl
+    inc de
+    djnz 1B
+    ret
+
+
+;****************************************************************    
+;****************************************************************
+;****   convert_score: convert score to text                ****
+;***************************************************************
+;****************************************************************
+convert_score
+
+    ld de,TENTHOUSAND
+    ld a,0
+    ld bc,scoredigits
+1       
+    sbc hl,de
+    inc a
+    jr nc,1B
+    dec a
+    ld (bc),a
+    add hl,de
+    CCF
+
+    ld de,THOUSAND
+    ld a,0
+    inc bc
+1       
+    sbc hl,de
+    inc a
+    jr nc,1B
+    dec a
+    ld (bc),a
+    add hl,de
+    CCF
+
+
+    ld de,HUNDRED
+    ld a,0
+    inc bc
+1       
+    sbc hl,de
+    inc a
+    jr nc,1B
+    dec a
+  
+    ld (bc),a
+    add hl,de
+    CCF
+
+
+    ld de,TEN
+    ld a,0
+    inc bc
+1       
+    sbc hl,de
+    inc a
+    jr nc,1B
+    dec a
+    ld (bc),a
+    add hl,de
+    CCF
+
+
+    ld a,l
+    inc bc
+    ld (bc),a
+
+    ret
+
+
+;****************************************************************
+;****************************************************************
+;****          get_keyboard: read and decode keyboard        ****
+;****************************************************************
+;****************************************************************
+get_keyboard
+	ld a,(keyboard_block)
+    cp a, $ff
+    jr z,1F
+
+    call KSCAN
+	ld b,h
+	ld c,l
+	ld d,c
+	inc d
+    ld a,$ff
+	jr z, 1F
+		call DECODE
+		ld a,(hl)   
+        ld b,a
+        ld a,(last_keyp)
+        cp b
+        ld a,b
+        jr z, 2F
+        ld (last_keyp),a
+        ret
+
+1    
+        ld (last_keyp),a
+        ret
+
+2
+        ld a,$ff
+        ret
+
 
 
 ;****************************************************************
@@ -1028,8 +1194,8 @@ print_string
     inc de
     jp 1B
 2
+    ret    
 
-ret    
 
 ;****************************************************************
 ;****************************************************************
@@ -1046,109 +1212,6 @@ get_tetro
 	ret
 
 
-;****************************************************************
-;****************************************************************
-;****        move_y: move tetro_down                         ****
-;****************************************************************
-;****************************************************************
-move_y
-	
-	call undraw_tetro
-	
-	ld a,(tetro_y)
-	inc a
-	ld (tetro_y),a
-	
-    call collisioncheck
-
-    ld a,(can_move)
-    cp a, $ff
-    jr nz, 1F
-    ld a,(tetro_y)
-    dec a
-    ld (tetro_y),a
-    call render_tetro
-    call update_score
-    call spawn
-1
-	ret
-
- 
-;****************************************************************
-;****************************************************************
-;****    undraw_tetro:delete tetro from Playfield            ****
-;****************************************************************
-;****************************************************************
-undraw_tetro
-
-;Find out tetro start, using tetro number and rotation state
-
-;step 1 which tetro
-	ld hl,tetrominoZero
-	ld a,(current_tetro)
-	cp a,0
-	jp z,2F
-	ld de,TETRO_BLOCK*4
-1	
-		adc hl,de
-		dec a
-		jp nz,1B
-2
-
-;step 2 which rotation state
-	ld a,(tetro_rotation)
-	cp a,0
-	jp z,2F
-	ld de,TETRO_BLOCK
-1	
-		adc hl,de
-		dec a
-		jp nz,1B
-2
-	push hl
-
-;get start of playfield plot area
-	ld hl,playfield
-	ld a,(tetro_y)
-	cp a,0
-	jp z,2F
-	ld de,WELL_WIDTH+3	
-1	
-		adc hl,de
-		dec a
-		jp nz,1B
-2
-	ld a,(tetro_x)
-	ld e,a
-	ld d,0
-	add hl,de
-	;inc hl
-
-;now draw the tetro into playfield
-	pop de
-	ld b,TETRO_SIZE
-1
-	push bc
-	ld b,TETRO_SIZE	
-2		
-		ld a,(de)
-		cp a, $40
-		jp z,3F	
-		cp a,$23
-		jp nz,3F
-			ld a,WELL_SPACE
-			ld (hl),a
-3		
-		inc hl
-		inc de
-		djnz 2B
-	push de
-	ld de, WELL_WIDTH+3-TETRO_SIZE
-	add hl,de
-	pop de
-	pop bc
-	djnz 1B
-	ret
 ;****************************************************************
 ;****************************************************************
 ;****    render_nexttetro:render next tetro to Screen        ****
