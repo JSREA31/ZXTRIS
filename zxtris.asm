@@ -4,7 +4,7 @@
 ;**** ZXTRIS                                                              ****
 ;**** 80 TETRIS CLONE FOR THE ZX81                                        ****
 ;**** Steve Smith 2022 (https://github.com/JSREA31/z80)                                                 ****
-;**** source for sjASMPlus (https://github.com/z00m128/sjasmplus)         ****
+;**** Source for sjASMPlus (https://github.com/z00m128/sjasmplus)         ****
 ;*****************************************************************************
 ;*****************************************************************************
     device	NOSLOT64K
