@@ -1,7 +1,7 @@
 L0008:       equ  0008h
 L0010:       equ  0010h
-L0014:       equ  0014h
 L0028:       equ  0028h
+L02C5:       equ  02C5h
 L066C:       equ  066Ch
 L07EB:       equ  07EBh
 L0871:       equ  0871h
@@ -13,10 +13,120 @@ L0F55:       equ  0F55h
 L14A3:       equ  14A3h
 L4000:       equ  4000h
 L4007:       equ  4007h
+L4028:       equ  4028h
 L4029:       equ  4029h
 L402B:       equ  402Bh
 L4030:       equ  4030h
-L4BFC:       equ  4BFCh
+
+
+             org 02C7h
+
+
+02C7 L02C7:
+02C7 57           LD   D,A    
+02C8 2F           CPL         
+02C9 FE 01        CP   01h    
+02CB 9F           SBC  A,A    
+02CC B0           OR   B      
+02CD A5           AND  L      
+02CE 6F           LD   L,A    
+02CF 7C           LD   A,H    
+02D0 A2           AND  D      
+02D1 67           LD   H,A    
+02D2 CB 00        RLC  B      
+02D4 ED 78        IN   A,(C)  
+02D6 38 ED        JR   C,L02C5 
+02D8 1F           RRA         
+02D9 CB 14        RL   H      
+02DB 17           RLA         
+02DC 17           RLA         
+02DD 17           RLA         
+02DE 9F           SBC  A,A    
+02DF E6 18        AND  18h    
+02E1 C6 1F        ADD  A,1Fh  
+02E3 32 28 40     LD   (L4028),A 
+02E6 C9           RET         
+
+
+02E7 FD           defb FDh    
+02E8 CB           defb CBh    
+02E9 3B           defb 3Bh    
+02EA 7E           defb 7Eh    
+02EB C8           defb C8h    
+02EC 76           defb 76h    
+02ED D3           defb D3h    
+02EE FD           defb FDh    
+02EF FD           defb FDh    
+02F0 CB           defb CBh    
+02F1 3B           defb 3Bh    
+02F2 BE           defb BEh    
+02F3 C9           defb C9h    
+02F4 CF           defb CFh    
+02F5 0E           defb 0Eh    
+02F6 CD           defb CDh    
+02F7 A8           defb A8h    
+02F8 03           defb 03h    
+02F9 38           defb 38h    
+02FA F9           defb F9h    
+02FB EB           defb EBh    
+02FC 11           defb 11h    
+02FD CB           defb CBh    
+02FE 12           defb 12h    
+02FF CD           defb CDh    
+0300 46           defb 46h    
+0301 0F           defb 0Fh    
+0302 30           defb 30h    
+0303 2E           defb 2Eh    
+0304 10           defb 10h    
+0305 FE           defb FEh    
+0306 1B           defb 1Bh    
+0307 7A           defb 7Ah    
+0308 B3           defb B3h    
+0309 20           defb 20h    
+030A F4           defb F4h    
+030B CD           defb CDh    
+030C 1E           defb 1Eh    
+030D 03           defb 03h    
+030E CB           defb CBh    
+030F 7E           defb 7Eh    
+0310 23           defb 23h    
+0311 28           defb 28h    
+0312 F8           defb F8h    
+0313 21           defb 21h    
+0314 09           defb 09h    
+0315 40           defb 40h    
+0316 CD           defb CDh    
+0317 1E           defb 1Eh    
+0318 03           defb 03h    
+0319 CD           defb CDh    
+031A FC           defb FCh    
+031B 01           defb 01h    
+031C 18           defb 18h    
+031D F8           defb F8h    
+031E 5E           defb 5Eh    
+031F 37           defb 37h    
+0320 CB           defb CBh    
+0321 13           defb 13h    
+0322 C8           defb C8h    
+0323 9F           defb 9Fh    
+0324 E6           defb E6h    
+0325 05           defb 05h    
+0326 C6           defb C6h    
+0327 04           defb 04h    
+0328 4F           defb 4Fh    
+0329 D3           defb D3h    
+032A FF           defb FFh    
+032B 06           defb 06h    
+032C 23           defb 23h    
+032D 10           defb 10h    
+032E FE           defb FEh    
+032F CD           defb CDh    
+0330 46           defb 46h    
+0331 0F           defb 0Fh    
+0332 30           defb 30h    
+0333 72           defb 72h    
+0334 06           defb 06h    
+0335 1E           defb 1Eh    
 
 
              org 0673h
@@ -275,32 +385,3 @@ L4BFC:       equ  4BFCh
 0DF3 ED           defb EDh    
 0DF4 B0           defb B0h    
 0DF5 2A           defb 2Ah    
-
-
-             org 4C00h
-
-
-4C00 L4C00:
-4C00 6B           LD   L,E    
-4C01 11 21 00     LD   DE,0021h 
-4C04 ED 52        SBC  HL,DE  
-4C06 54           LD   D,H    
-4C07 5D           LD   E,L    
-4C08 21 46 50     LD   HL,5046h 
-4C0B 06 20        LD   B,20h  
-4C0D L4C0D:
-4C0D 1A           LD   A,(DE) 
-4C0E BF           CP   A      
-4C0F FE FF        CP   FFh    
-4C11 28 E9        JR   Z,L4BFC 
-4C13 D6 1B        SUB  1Bh    
-4C15 BF           CP   A      
-4C16 FE 05        CP   05h    
-4C18 20 02        JR   NZ,L4C1C 
-4C1A 3E 00        LD   A,00h  
-4C1C L4C1C:
-4C1C 77           LD   (HL),A 
-4C1D 23           INC  HL     
-4C1E 13           INC  DE     
-4C1F 10 EC        DJNZ L4C0D  
-4C21 3A 14 00     LD   A,(L0014) 
