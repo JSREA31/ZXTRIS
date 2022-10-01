@@ -1,8 +1,8 @@
 
 ;*****************************************************************************
 ;*****************************************************************************
-;**** ZXTRIS                                                              ****
-;**** Z80 TETRIS CLONE FOR THE ZX81                                        ****
+;**** ZXTRIS V1.0                                                         ****
+;**** Z80 TETRIS CLONE FOR THE ZX81                                       ****
 ;**** Steve Smith 2022 (https://github.com/JSREA31/z80)                   ****
 ;**** Source for sjASMPlus (https://github.com/z00m128/sjasmplus)         ****
 ;**** Thanks to chancanasta for the helloworld source that got me started ****
