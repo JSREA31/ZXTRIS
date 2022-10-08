@@ -338,11 +338,11 @@ undraw_tetro
 ;****************************************************************
 doactions
     
-    cp $36 ;Q = Quit
+    cp $36 ; quit
     jr nz,1F
-        ld a, $ff
-        ld (game_over),a
+        jp pausequit
         ret
+
 
 1   cp $72 ; < = left
     jr nz,1F
@@ -364,12 +364,12 @@ doactions
         call move_right
         ret
 
-1   cp $26; A = rotate CW
+1   cp $29; A = rotate CW
     jr nz, 1F
         call rotateCW
         ret
 
-1   cp $29; D = rotate ACW
+1   cp $26; D = rotate ACW
     jr nz, 1F
         call rotateACW
         ret
@@ -389,10 +389,12 @@ doactions
 
 1   cp $35; P = Pause
     jr nz, 1F
+pausequit
         ;pause label
         ld hl,pausetext
         ld de,Display+(SCREEN_WIDTH*18)+1
         call print_string 
+
 2       call get_keyboard
         cp a, $35
 		jp nz,3F
@@ -944,6 +946,38 @@ draw_labels
     ld de,Display+(SCREEN_WIDTH*8)+2
     call print_string 
 
+    ;keys labels
+    ld hl,instructions1text
+    ld de,Display+(SCREEN_WIDTH*8)+26
+    call print_string 
+        
+    ld hl,gamekeys1
+    ld de,Display+(SCREEN_WIDTH*9)+24
+    call print_string 
+    
+    ld hl,gamekeys2
+    ld de,Display+(SCREEN_WIDTH*10)+24
+    call print_string
+
+    ld hl,gamekeys3
+    ld de,Display+(SCREEN_WIDTH*12 )+24
+    call print_string
+
+    ld hl,gamekeys4
+    ld de,Display+(SCREEN_WIDTH*13 )+24
+    call print_string  
+
+    ld hl,gamekeys5
+    ld de,Display+(SCREEN_WIDTH*14 )+24
+    call print_string  
+
+    ld hl,gamekeys6
+    ld de,Display+(SCREEN_WIDTH*16 )+24
+    call print_string 
+
+    ld hl,gamekeys7
+    ld de,Display+(SCREEN_WIDTH*17 )+24
+    call print_string     
     ret
 
 

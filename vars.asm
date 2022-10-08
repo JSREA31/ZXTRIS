@@ -21,7 +21,7 @@ deletepausetext
         DEFM    "                                "
         DEFB    $FF                
 gameovertext
-        DEFM    "GAME OVER - PRESS SPACE"
+        DEFM    "GAME OVER -- PRESS SPACE"
         DEFB    $FF
 titlescreen2text
         DEFM    "PRESS SPACE TO START"
@@ -40,12 +40,33 @@ instructions4text
         DEFB    $FF              
 scrollingmessage
         DEFM    "                                              "
-        DEFM    "ZXTRIS V",56,54,55, " BY STEVE SMITH ",57,55,57,57,54  
+        DEFM    "ZXTRIS V",56,54,56, " BY STEVE SMITH ",57,55,57,57,54  
         DEFM    " I LEARNED TO CODE IN BASIC ON MY ZX",63,56," OVER ", 59,55," YEARS AGO BUT THIS IS MY FIRST EVER Z",63,55," PROGRAM",54
         DEFM    " WRITTEN WITH VSCODE",53," SJASMPLUS",53," DEZOG AND ZESARUX",54
         DEFM    " THANKS TO MUTANT CATERPILLAR AND RWAP FOR KEEPING MY ZX",63,56," ALIVE",54
         DEFM    "                                                "
         DEFB    $FF                          
+gamekeys1
+        DEFM    167+27," LEFT "
+        DEFB    $FF
+gamekeys2
+        DEFM    178+27," RIGHT"
+        DEFB    $FF
+gamekeys3
+        DEFM    166+27," ROT L"
+        DEFB    $FF
+gamekeys4
+        DEFM    184+27," DROP"
+        DEFB    $FF
+gamekeys5
+        DEFM    169+27," ROT R"
+        DEFB    $FF
+gamekeys6
+        DEFM    181+27," PAUSE"
+        DEFB    $FF
+gamekeys7
+        DEFM    182+27," QUIT"
+        DEFB    $FF                
 scrolldelay
         DEFB    45
 scrolldelaycounter
