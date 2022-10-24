@@ -85,8 +85,8 @@ game_loop
 init_game
 	
     ;use this to work out next tetro (not quite randomn!) but only if this is the first tetro
-	call get_tetro
-    ld (next_tetro),a
+	;call get_tetro
+    ;ld (next_tetro),a
 
     ;clear the playfield
 	call new_Well
@@ -1055,6 +1055,10 @@ display_level
 ;****************************************************************
 ;****************************************************************
 title_screen
+
+    ld a,$00
+    ld (next_tetro),a
+
 ;draw logo
     ld de,Display+(SCREEN_WIDTH*2)+1
     ld hl,logo2
@@ -1118,6 +1122,13 @@ title_screen
 3   ld (hl),a
     inc hl
     inc de
+    ld a,(next_tetro)
+    inc a
+    cp a, $07
+    jp nz, 9F
+    ld a,$00
+9
+    ld (next_tetro),a
     djnz 1B
     
     ld a,(scrolldelaycounter)

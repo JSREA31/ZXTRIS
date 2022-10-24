@@ -40,7 +40,7 @@ instructions4text
         DEFB    $FF              
 scrollingmessage
         DEFM    "                                              "
-        DEFM    "ZXTRIS V",56,54,56, " BY STEVE SMITH ",57,55,57,57,54  
+        DEFM    "ZXTRIS V",56,54,57, " BY STEVE SMITH ",57,55,57,57,54  
         DEFM    " I LEARNED TO CODE IN BASIC ON MY ZX",63,56," OVER ", 59,55," YEARS AGO BUT THIS IS MY FIRST EVER Z",63,55," PROGRAM",54
         DEFM    " WRITTEN WITH VSCODE",53," SJASMPLUS",53," DEZOG AND ZESARUX",54
         DEFM    " THANKS TO MUTANT CATERPILLAR AND RWAP FOR KEEPING MY ZX",63,56," ALIVE",54
