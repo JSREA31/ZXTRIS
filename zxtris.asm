@@ -910,6 +910,8 @@ update_score
 ;****************************************************************
 endofgame
     ;display game over text
+    ld a,$00
+    ld (keyboard_block),a
     call rendergameovertext
 2   call get_keyboard
     cp a, $00
